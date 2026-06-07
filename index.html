@@ -1,0 +1,4500 @@
+<!doctype html>
+<html lang="en" data-app-ready="false">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OurDashboard</title>
+  <meta name="description" content="OurDashboard - a place to manage and admin your projects." />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --surface-2: #f1f4f8;
+      --surface-3: #e6ebf2;
+      --chrome: #f2f5f9;
+      --chrome-2: #edf1f7;
+      --text: #17202a;
+      --text-soft: #485465;
+      --text-muted: #6b7482;
+      --border: #d9dee8;
+      --border-strong: #bcc6d4;
+      --accent: #2447a3;
+      --accent-hover: #1d3c8c;
+      --accent-soft: #eef3ff;
+      --danger: #b42318;
+      --danger-soft: #fff0ed;
+      --warning: #8a4b0f;
+      --warning-soft: #fff6e8;
+      --success: #167044;
+      --success-soft: #eaf7ef;
+      --focus: #0f6fff;
+      --shadow: 0 16px 42px rgba(23, 32, 42, 0.08);
+      --button-radius-sm: 7px;
+      --button-radius-md: 10px;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --project-sidebar-width: 320px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #0f1319;
+        --surface: #171d26;
+        --surface-2: #202836;
+        --surface-3: #2a3444;
+        --chrome: #1b2431;
+        --chrome-2: #202b39;
+        --text: #eef2f7;
+        --text-soft: #c3cad7;
+        --text-muted: #929cac;
+        --border: #313b4c;
+        --border-strong: #455066;
+        --accent: #87a7ff;
+        --accent-hover: #a5bbff;
+        --accent-soft: #1d2a4a;
+        --danger: #ff9b91;
+        --danger-soft: #3a201f;
+        --warning: #ffcf86;
+        --warning-soft: #342919;
+        --success: #7ddaa5;
+        --success-soft: #173323;
+        --focus: #8db2ff;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; background: var(--bg); }
+
+    body {
+      min-height: 100%;
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button { cursor: pointer; }
+
+    button:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    :focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus), transparent 60%);
+      outline-offset: 2px;
+    }
+
+    .app { min-height: 100vh; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--chrome), transparent 3%);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar-inner {
+      display: flex;
+      width: min(1480px, 100%);
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      margin: 0 auto;
+      padding: var(--space-4) var(--space-6);
+    }
+
+    .brand {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 1.25rem;
+    }
+
+    .brand h1 {
+      margin: 0;
+      overflow: hidden;
+      font-size: 1.08rem;
+      font-weight: 790;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand p {
+      margin: 0.15rem 0 0;
+      overflow: hidden;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-actions {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .shell {
+      display: grid;
+      width: min(1480px, 100%);
+      grid-template-columns: minmax(260px, var(--project-sidebar-width)) 12px minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: stretch;
+      margin: 0 auto;
+      padding: var(--space-5) var(--space-6) var(--space-6);
+    }
+
+    html[data-sidebar-collapsed="true"] .shell {
+      grid-template-columns: 64px 12px minmax(0, 1fr);
+    }
+
+    html[data-sidebar-collapsed="true"] .project-index {
+      overflow: hidden;
+    }
+
+    html[data-sidebar-collapsed="true"] .project-index .panel-header {
+      justify-content: center;
+      padding: var(--space-3) var(--space-2);
+    }
+
+    html[data-sidebar-collapsed="true"] .project-index .panel-title,
+    html[data-sidebar-collapsed="true"] .project-index .count-chip,
+    html[data-sidebar-collapsed="true"] .project-index .list-tools,
+    html[data-sidebar-collapsed="true"] .project-name,
+    html[data-sidebar-collapsed="true"] .project-meta,
+    html[data-sidebar-collapsed="true"] .project-next,
+    html[data-sidebar-collapsed="true"] .project-row-aside,
+    html[data-sidebar-collapsed="true"] .project-status-rail {
+      display: none;
+    }
+
+    html[data-sidebar-collapsed="true"] .project-index .panel-header::before {
+      content: "🗂️";
+      font-size: 1.25rem;
+    }
+
+    html[data-sidebar-collapsed="true"] .project-list {
+      min-height: 360px;
+      max-height: calc(100vh - 140px);
+    }
+
+    html[data-sidebar-collapsed="true"] .project-row {
+      min-height: 56px;
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 0;
+    }
+
+    html[data-sidebar-collapsed="true"] .project-row-main {
+      display: grid;
+      width: 100%;
+      min-height: 56px;
+      place-items: center;
+      padding: 0;
+    }
+
+    html[data-sidebar-collapsed="true"] .project-name-line {
+      justify-content: center;
+    }
+
+    html[data-sidebar-collapsed="true"] .project-emoji {
+      width: 40px;
+      height: 40px;
+      font-size: 1.35rem;
+    }
+
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome);
+    }
+
+    .panel-title { min-width: 0; }
+
+    .panel-title h2,
+    .detail-title h2,
+    .table-title h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 760;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+    }
+
+    .panel-title p,
+    .detail-title p,
+    .table-title p {
+      margin: 0.25rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    .list-tools {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome-2);
+    }
+
+    .search-wrap { position: relative; }
+
+    .search-wrap span {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 38px;
+      padding: 0.52rem 0.75rem 0.52rem 2.1rem;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .filter-button {
+      min-height: 32px;
+      padding: 0.35rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: var(--button-radius-md);
+      color: var(--text-soft);
+      background: var(--surface);
+      font-size: 0.84rem;
+      line-height: 1;
+    }
+
+    .filter-button:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+    }
+
+    .filter-button[aria-pressed="true"] {
+      border-color: color-mix(in srgb, var(--accent), var(--border) 35%);
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 720;
+    }
+
+    .project-list {
+      display: grid;
+      grid-auto-rows: max-content;
+      align-content: start;
+      max-height: calc(100vh - 235px);
+      min-height: 360px;
+      overflow: auto;
+      scroll-padding: var(--space-2);
+    }
+
+    .project-row {
+      display: grid;
+      width: 100%;
+      min-height: 74px;
+      grid-template-columns: 4px minmax(0, 1fr) auto;
+      gap: var(--space-3);
+      align-items: stretch;
+      padding: 0;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      color: inherit;
+      background: transparent;
+      text-align: left;
+    }
+
+    .project-row:hover { background: var(--surface-2); }
+
+    .project-row[aria-selected="true"] {
+      background: var(--accent-soft);
+    }
+
+    .project-status-rail {
+      width: 4px;
+      background: var(--border);
+    }
+
+    .project-row[aria-selected="true"] .project-status-rail { background: var(--accent); }
+    .project-status-rail.active { background: var(--success); }
+    .project-status-rail.idea { background: var(--warning); }
+    .project-status-rail.stuck { background: var(--danger); }
+    .project-status-rail.paused { background: var(--border-strong); }
+    .project-status-rail.done { background: var(--success); }
+
+    .project-row-main {
+      min-width: 0;
+      padding: 0.7rem 0;
+    }
+
+    .project-name-line {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+    }
+
+    .project-title-main {
+      display: inline-flex;
+      min-width: 0;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .project-emoji {
+      display: inline-grid;
+      width: 1.65rem;
+      height: 1.65rem;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .emoji-button {
+      display: inline-grid;
+      width: 2.35rem;
+      height: 2.35rem;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--button-radius-md);
+      color: var(--text);
+      background: var(--surface);
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .emoji-button:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+    }
+
+    .emoji-picker-anchor {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .emoji-picker {
+      position: absolute;
+      top: calc(100% + 0.45rem);
+      left: 0;
+      z-index: 35;
+      display: grid;
+      width: min(360px, calc(100vw - 2rem));
+      max-height: 430px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .emoji-picker-head {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome);
+    }
+
+    .emoji-picker-head h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 780;
+    }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: var(--space-1);
+      max-height: 300px;
+      overflow: auto;
+      padding: var(--space-2);
+    }
+
+    .emoji-option {
+      display: grid;
+      min-height: 38px;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: var(--button-radius-sm);
+      background: transparent;
+      font-size: 1.25rem;
+    }
+
+    .emoji-option:hover,
+    .emoji-option:focus-visible {
+      border-color: var(--border);
+      background: var(--surface-2);
+    }
+
+    .project-name {
+      overflow: hidden;
+      font-size: 0.93rem;
+      font-weight: 760;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .project-meta {
+      display: flex;
+      min-width: 0;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.55rem;
+      margin-top: 0.35rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.2;
+    }
+
+    .project-next {
+      display: block;
+      overflow: hidden;
+      margin: 0.35rem 0 0;
+      color: var(--text-soft);
+      font-size: 0.82rem;
+      line-height: 1.3;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .project-row-aside {
+      display: grid;
+      align-content: center;
+      justify-items: end;
+      gap: 0.25rem;
+      padding: 0.7rem var(--space-3) 0.7rem 0;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .mini-metric {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      max-width: 100%;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.15rem 0.42rem;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      background: var(--surface);
+      font-size: 0.74rem;
+      font-weight: 680;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .badge.active,
+    .badge.done {
+      border-color: color-mix(in srgb, var(--success), var(--border) 70%);
+      color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .badge.stuck {
+      border-color: color-mix(in srgb, var(--danger), var(--border) 70%);
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .badge.paused,
+    .badge.idea {
+      border-color: color-mix(in srgb, var(--warning), var(--border) 70%);
+      color: var(--warning);
+      background: var(--warning-soft);
+    }
+
+    .count-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      height: 2rem;
+      padding: 0 var(--space-2);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      background: var(--surface-2);
+      font-size: 0.84rem;
+      font-weight: 760;
+    }
+
+    .resize-rail {
+      position: relative;
+      width: 12px;
+      min-height: 100%;
+      border: 0;
+      background: transparent;
+      cursor: col-resize;
+      touch-action: none;
+    }
+
+    .resize-rail::before {
+      position: absolute;
+      top: 14px;
+      bottom: 14px;
+      left: 50%;
+      width: 2px;
+      background: var(--border);
+      transform: translateX(-50%);
+      content: "";
+    }
+
+    .resize-rail::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: grid;
+      width: 22px;
+      height: 46px;
+      place-items: center;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: var(--surface);
+      box-shadow: 0 8px 22px rgba(23, 32, 42, 0.08);
+      transform: translate(-50%, -50%);
+      content: "⋮";
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .resize-rail:hover::before,
+    .resize-rail:focus-visible::before,
+    body.is-resizing .resize-rail::before {
+      background: var(--accent);
+    }
+
+    .resize-rail:hover::after,
+    .resize-rail:focus-visible::after,
+    body.is-resizing .resize-rail::after {
+      border-color: color-mix(in srgb, var(--accent), var(--border) 35%);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    body.is-resizing {
+      cursor: col-resize;
+      user-select: none;
+    }
+
+    .detail {
+      min-height: 620px;
+      overflow: hidden;
+    }
+
+    .detail-header,
+    .table-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-4);
+      align-items: start;
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome);
+    }
+
+    .detail-title,
+    .table-title {
+      min-width: 0;
+    }
+
+    .detail-heading-line {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .detail-title h2,
+    .table-title h2 {
+      overflow-wrap: anywhere;
+      font-size: 1.12rem;
+    }
+
+    .detail-actions,
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .detail-nav {
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome-2);
+    }
+
+    .detail-nav-inner {
+      position: relative;
+      min-width: 0;
+      padding: 0 var(--space-4);
+      overflow: hidden;
+    }
+
+    .detail-nav-inner::before,
+    .detail-nav-inner::after {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 2;
+      display: grid;
+      width: 2rem;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 160ms ease;
+    }
+
+    .detail-nav-inner::before {
+      left: 0;
+      justify-items: start;
+      padding-left: 0.35rem;
+      background: linear-gradient(90deg, var(--chrome-2), transparent);
+      content: "‹";
+    }
+
+    .detail-nav-inner::after {
+      right: 0;
+      justify-items: end;
+      padding-right: 0.35rem;
+      background: linear-gradient(270deg, var(--chrome-2), transparent);
+      content: "›";
+    }
+
+    .detail-nav-inner.can-scroll-left::before {
+      opacity: 1;
+    }
+
+    .detail-nav-inner.can-scroll-right::after {
+      opacity: 1;
+    }
+
+    .detail-tabs {
+      display: flex;
+      min-width: 0;
+      min-height: 54px;
+      gap: var(--space-1);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .detail-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .detail-tabs {
+      cursor: grab;
+    }
+
+    .detail-tabs.is-nav-dragging {
+      cursor: grabbing;
+      user-select: none;
+    }
+
+    .tab-button {
+      position: relative;
+      display: inline-flex;
+      min-height: 54px;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0 var(--space-4);
+      border: 0;
+      color: var(--text-soft);
+      background: transparent;
+      font-weight: 720;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .tab-button::after {
+      position: absolute;
+      right: var(--space-3);
+      bottom: -1px;
+      left: var(--space-3);
+      height: 3px;
+      background: transparent;
+      content: "";
+    }
+
+    .tab-button:hover {
+      color: var(--text);
+      background: color-mix(in srgb, var(--surface-2), transparent 28%);
+    }
+
+    .tab-button[aria-selected="true"] {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent-soft), transparent 34%);
+    }
+
+    .tab-button[aria-selected="true"]::after { background: var(--accent); }
+
+    .tab-icon {
+      display: grid;
+      width: 1.55rem;
+      height: 1.55rem;
+      place-items: center;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 0.9rem;
+    }
+
+    .tab-button[aria-selected="true"] .tab-icon {
+      border-color: color-mix(in srgb, var(--accent), var(--border) 35%);
+      background: var(--accent-soft);
+    }
+
+    .tab-label {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .tab-count {
+      display: inline-flex;
+      min-width: 1.4rem;
+      height: 1.4rem;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.38rem;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: var(--surface);
+      font-size: 0.74rem;
+      font-weight: 780;
+    }
+
+    .tab-button[aria-selected="true"] .tab-count {
+      border-color: color-mix(in srgb, var(--accent), var(--border) 45%);
+      color: var(--accent);
+      background: var(--surface);
+    }
+
+    .detail-body,
+    .table-body {
+      display: grid;
+      gap: var(--space-5);
+      padding: var(--space-4);
+    }
+
+    .tab-panel {
+      display: grid;
+      gap: var(--space-5);
+      min-width: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .field {
+      display: grid;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .field label,
+    .field-label {
+      color: var(--text-soft);
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .input,
+    .select {
+      min-height: 40px;
+      padding: 0.52rem 0.72rem;
+    }
+
+    .textarea {
+      min-height: 88px;
+      resize: vertical;
+      padding: 0.72rem;
+      line-height: 1.45;
+    }
+
+    .input:hover,
+    .select:hover,
+    .textarea:hover { border-color: var(--border-strong); }
+
+    .section {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 750;
+      letter-spacing: -0.01em;
+    }
+
+    .section-subtle {
+      margin: 0.2rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+
+    .inline-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(150px, 210px) auto;
+      gap: var(--space-2);
+    }
+
+    .phase-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(140px, 170px) auto;
+      gap: var(--space-2);
+    }
+
+    .task-list,
+    .note-list,
+    .phase-list,
+    .module-list {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .task-item,
+    .note-item,
+    .phase-item,
+    .module-item {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .task-item {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .task-main {
+      display: grid;
+      gap: 0.25rem;
+      min-width: 0;
+    }
+
+    .task-check {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: var(--accent);
+    }
+
+    .task-title {
+      min-width: 0;
+      color: var(--text);
+      font-size: 0.94rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .task-title.done {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .task-phase {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.2;
+    }
+
+    .phase-item {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .phase-title-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .phase-status-pill {
+      width: auto;
+      min-height: 1.45rem;
+      max-width: 8.75rem;
+      padding: 0.12rem 1.45rem 0.12rem 0.42rem;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      background-color: var(--surface);
+      font-size: 0.74rem;
+      font-weight: 680;
+      line-height: 1.15;
+    }
+
+    .phase-status-pill.active,
+    .phase-status-pill.done {
+      border-color: color-mix(in srgb, var(--success), var(--border) 70%);
+      color: var(--success);
+      background-color: var(--success-soft);
+    }
+
+    .phase-status-pill.stuck {
+      border-color: color-mix(in srgb, var(--danger), var(--border) 70%);
+      color: var(--danger);
+      background-color: var(--danger-soft);
+    }
+
+    .phase-status-pill.paused {
+      border-color: color-mix(in srgb, var(--warning), var(--border) 70%);
+      color: var(--warning);
+      background-color: var(--warning-soft);
+    }
+
+    .phase-delete-button {
+      width: 1.55rem;
+      min-height: 1.45rem;
+      padding: 0;
+      border-radius: var(--button-radius-sm);
+      font-size: 0.78rem;
+    }
+
+    .phase-title {
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 750;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .phase-desc,
+    .note-content,
+    .module-desc {
+      margin: 0;
+      color: var(--text-soft);
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .phase-meta,
+    .note-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .phase-task-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 300px;
+      padding: var(--space-8);
+      text-align: center;
+    }
+
+    .empty-inner { max-width: 440px; }
+
+    .empty-icon {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      margin: 0 auto var(--space-4);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 1.35rem;
+    }
+
+    .empty h2,
+    .empty h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 760;
+      letter-spacing: -0.015em;
+    }
+
+    .empty p {
+      margin: var(--space-2) 0 0;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .empty .button { margin-top: var(--space-5); }
+
+    .console-empty {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border: 1px dashed var(--border-strong);
+      background: var(--surface-2);
+    }
+
+    .console-empty h3 {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 740;
+    }
+
+    .console-empty p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .banner {
+      display: none;
+      width: min(1480px, calc(100% - 2rem));
+      margin: var(--space-4) auto 0;
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid color-mix(in srgb, var(--danger), var(--border) 70%);
+      color: var(--danger);
+      background: var(--danger-soft);
+      line-height: 1.4;
+    }
+
+    .banner[aria-hidden="false"] { display: block; }
+
+    .button {
+      display: inline-flex;
+      min-height: 40px;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid transparent;
+      border-radius: var(--button-radius-md);
+      font-weight: 730;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .button.primary {
+      border-color: var(--accent);
+      color: #ffffff;
+      background: #2447a3;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .button.primary {
+        color: #10141c;
+        background: var(--accent);
+      }
+    }
+
+    .button.primary:hover {
+      border-color: var(--accent-hover);
+      background: var(--accent-hover);
+    }
+
+    .button.secondary {
+      border-color: var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .button.secondary:hover {
+      border-color: var(--border-strong);
+      background: var(--surface-2);
+    }
+
+    .button.ghost {
+      border-color: transparent;
+      color: var(--text-soft);
+      background: transparent;
+    }
+
+    .button.ghost:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .button.danger {
+      border-color: color-mix(in srgb, var(--danger), var(--border) 60%);
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .button.danger:hover { border-color: var(--danger); }
+
+    .button.small {
+      min-height: 32px;
+      padding: 0.35rem 0.55rem;
+      border-radius: var(--button-radius-sm);
+      font-size: 0.84rem;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .project-table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .project-table th,
+    .project-table td {
+      padding: 0.8rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .project-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: var(--text-soft);
+      background: var(--surface-2);
+      font-size: 0.8rem;
+      font-weight: 760;
+    }
+
+    .project-table tr:hover td { background: var(--surface-2); }
+
+    .table-project-name {
+      font-weight: 750;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .table-subtle {
+      margin-top: 0.2rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      line-height: 1.35;
+    }
+
+    .metadata-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      color: var(--text-muted);
+      font-size: 0.84rem;
+    }
+
+    .divider { height: 1px; background: var(--border); }
+
+    .dialog {
+      width: min(620px, calc(100% - 2rem));
+      padding: 0;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .dialog.modules-dialog {
+      width: min(780px, calc(100% - 2rem));
+    }
+
+    .dialog::backdrop { background: rgba(10, 14, 20, 0.48); }
+
+    .dialog-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      font-size: 1.08rem;
+      font-weight: 760;
+      letter-spacing: -0.015em;
+    }
+
+    .dialog-header p {
+      margin: 0.25rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .dialog-body {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-4);
+    }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+
+    .module-item {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .module-item input {
+      margin-top: 0.2rem;
+    }
+
+    .module-title {
+      margin: 0;
+      font-weight: 760;
+      line-height: 1.25;
+    }
+
+    .module-pill {
+      display: inline-flex;
+      margin-left: 0.45rem;
+      padding: 0.1rem 0.42rem;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: var(--surface-2);
+      font-size: 0.72rem;
+      font-weight: 760;
+    }
+
+    .modules-anchor {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .modules-popover {
+      position: absolute;
+      top: calc(100% + 0.45rem);
+      right: 0;
+      z-index: 30;
+      display: grid;
+      width: min(390px, calc(100vw - 2rem));
+      max-height: min(560px, calc(100vh - 8rem));
+      overflow: auto;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .modules-popover-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome);
+    }
+
+    .modules-popover-head h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 780;
+      line-height: 1.25;
+    }
+
+    .modules-popover-head p,
+    .module-caption {
+      margin: 0.15rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.32;
+    }
+
+    .module-selector-list {
+      display: grid;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .module-selector-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .module-selector-item:last-child {
+      border-bottom: 0;
+    }
+
+    .module-toggle {
+      width: 1.05rem;
+      height: 1.05rem;
+      margin-top: 0.15rem;
+      accent-color: var(--accent);
+    }
+
+    .module-selector-main {
+      display: grid;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+
+    .module-selector-title {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+    }
+
+    .module-link {
+      display: inline-flex;
+      min-width: 0;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0;
+      border: 0;
+      color: var(--accent);
+      background: transparent;
+      font-weight: 760;
+      line-height: 1.25;
+      text-align: left;
+      text-decoration: underline;
+      text-underline-offset: 0.16em;
+      white-space: normal;
+    }
+
+    .module-link[disabled] {
+      color: var(--text);
+      text-decoration: none;
+      opacity: 1;
+      cursor: default;
+    }
+
+    .module-state {
+      flex: 0 0 auto;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 720;
+      line-height: 1.2;
+    }
+
+    .module-settings {
+      display: grid;
+      gap: var(--space-3);
+      margin-top: var(--space-2);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+    }
+
+    .module-settings .field {
+      gap: 0.35rem;
+    }
+
+    .module-settings .input,
+    .module-settings .select {
+      min-height: 36px;
+      font-size: 0.84rem;
+    }
+
+    .module-secret-note {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .module-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .module-subnav {
+      display: flex;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--border);
+      background: var(--chrome-2);
+    }
+
+    .module-installer {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-textarea {
+      min-height: 180px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .access-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+
+    .access-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(140px, 180px);
+      gap: var(--space-2);
+      align-items: center;
+      padding: var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .access-row strong {
+      display: block;
+      margin-bottom: 0.15rem;
+      font-weight: 760;
+    }
+
+    .access-row span {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .settings-tabs {
+      display: flex;
+      gap: var(--space-1);
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0 var(--space-4);
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+
+    .settings-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .settings-panel {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    @media (max-width: 720px) {
+      .access-grid,
+      .access-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .integration-panel {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .integration-panel h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 780;
+      letter-spacing: -0.01em;
+    }
+
+    .integration-panel p {
+      margin: 0.2rem 0 0;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .integration-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .integration-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+
+    .layer-stack {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .layer-item {
+      display: grid;
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .layer-name {
+      color: var(--text);
+      font-weight: 780;
+      line-height: 1.25;
+    }
+
+    .layer-copy {
+      margin: 0;
+      color: var(--text-soft);
+      line-height: 1.45;
+    }
+
+    .module-capability {
+      display: grid;
+      gap: var(--space-2);
+      padding-top: var(--space-2);
+    }
+
+    .capability-row {
+      display: grid;
+      grid-template-columns: 7rem minmax(0, 1fr);
+      gap: var(--space-2);
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .capability-row strong {
+      color: var(--text-soft);
+      font-weight: 760;
+    }
+
+    @media (max-width: 720px) {
+      .integration-grid,
+      .layer-item,
+      .capability-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .loading-cover {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+    }
+
+    .loading-box {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--surface-3);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 800ms linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    html[data-app-ready="true"] .loading-cover { display: none; }
+
+    .save-state {
+      min-height: 1.2rem;
+      color: var(--text-muted);
+      font-size: 0.83rem;
+      line-height: 1.2;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+      }
+
+      .resize-rail { display: none; }
+
+      .project-list { max-height: none; }
+
+      .detail { min-height: auto; }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner {
+        align-items: stretch;
+        flex-direction: column;
+        padding: var(--space-4);
+      }
+
+      .topbar-actions,
+      .detail-actions,
+      .table-actions,
+      .dialog-footer {
+        width: 100%;
+        justify-content: stretch;
+        flex-wrap: wrap;
+      }
+
+      .topbar-actions .button,
+      .detail-actions .button,
+      .table-actions .button,
+      .dialog-footer .button {
+        flex: 1 1 auto;
+      }
+
+      .shell {
+        gap: var(--space-4);
+        padding: var(--space-4);
+      }
+
+      .panel-header,
+      .detail-header,
+      .table-header,
+      .dialog-header {
+        grid-template-columns: 1fr;
+        padding: var(--space-4);
+      }
+
+      .detail-nav-inner {
+        gap: 0;
+        padding: 0 var(--space-4);
+      }
+
+      .tab-button {
+        min-height: 50px;
+        padding: 0 var(--space-3);
+      }
+
+      .tab-icon {
+        width: 1.45rem;
+        height: 1.45rem;
+      }
+
+      .detail-body,
+      .table-body,
+      .dialog-body {
+        padding: var(--space-4);
+      }
+
+      .form-grid,
+      .inline-form,
+      .phase-form,
+      .phase-task-form {
+        grid-template-columns: 1fr;
+      }
+
+      .phase-item { grid-template-columns: 1fr; }
+
+      .button { white-space: normal; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-cover" role="status" aria-live="polite">
+    <div class="loading-box">
+      <span class="spinner" aria-hidden="true"></span>
+      <span>Loading dashboard…</span>
+    </div>
+  </div>
+
+  <div id="storageBanner" class="banner" aria-hidden="true"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand" aria-label="OurDashboard">
+          <div class="brand-mark" aria-hidden="true">🧰</div>
+          <div>
+            <h1>OurDashboard</h1>
+            <p>a place to manage and admin your projects</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button id="allProjectsButton" class="button secondary" type="button">📊 All projects</button>
+          <button id="exportButton" class="button secondary" type="button">⬇️ Export data</button>
+          <button id="importButton" class="button secondary" type="button">⬆️ Import data</button>
+          <button id="openProjectDialogButton" class="button primary" type="button">➕ Add project</button>
+          <input id="importFile" class="sr-only" type="file" accept="application/json" aria-label="Import dashboard data" />
+        </div>
+      </div>
+    </header>
+
+    <main class="shell" aria-live="polite">
+      <section class="panel project-index" aria-labelledby="projectListHeading">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2 id="projectListHeading">🗂️ Project index</h2>
+            <p id="projectCountText">No projects yet.</p>
+          </div>
+          <span id="openTaskCount" class="count-chip" title="Open tasks">0</span>
+        </div>
+
+        <div class="list-tools">
+          <label class="search-wrap">
+            <span aria-hidden="true">🔎</span>
+            <span class="sr-only">Search projects</span>
+            <input id="searchInput" class="search-input" type="search" placeholder="Search projects" autocomplete="off" />
+          </label>
+
+          <div class="filters" aria-label="Filter projects by status">
+            <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
+            <button class="filter-button" type="button" data-filter="active" aria-pressed="false">Active</button>
+            <button class="filter-button" type="button" data-filter="idea" aria-pressed="false">Idea</button>
+            <button class="filter-button" type="button" data-filter="stuck" aria-pressed="false">Stuck</button>
+            <button class="filter-button" type="button" data-filter="paused" aria-pressed="false">Paused</button>
+            <button class="filter-button" type="button" data-filter="done" aria-pressed="false">Done</button>
+          </div>
+        </div>
+
+        <div id="projectList" class="project-list" role="listbox" aria-label="Project list"></div>
+      </section>
+
+      <button
+        id="resizeRail"
+        class="resize-rail"
+        type="button"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize project selector"
+        aria-valuemin="260"
+        aria-valuemax="520"
+        aria-valuenow="320"
+        title="Drag to resize project selector. Use Left and Right arrow keys when focused."
+      ></button>
+
+      <section id="workspacePanel" class="panel detail" aria-labelledby="workspaceHeading"></section>
+    </main>
+  </div>
+
+  <dialog id="projectDialog" class="dialog" aria-labelledby="dialogTitle">
+    <form id="projectForm" method="dialog">
+      <div class="dialog-header">
+        <div>
+          <h2 id="dialogTitle">➕ Add project</h2>
+          <p>Create a clean project shell. A first phase is created from the starting stage.</p>
+        </div>
+        <button class="button ghost small" type="button" id="closeDialogButton" aria-label="Close add project dialog">✕</button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="field">
+          <label for="newProjectName">Project name</label>
+          <input id="newProjectName" class="input" name="name" type="text" autocomplete="off" required maxlength="80" />
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="newProjectStatus">Status</label>
+            <select id="newProjectStatus" class="select" name="status">
+              <option value="active">Active</option>
+              <option value="idea">Idea</option>
+              <option value="stuck">Stuck</option>
+              <option value="paused">Paused</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="newProjectStage">Starting stage</label>
+            <select id="newProjectStage" class="select" name="stage">
+              <option value="identification">Identification</option>
+              <option value="management">Management</option>
+              <option value="discovery">Discovery</option>
+              <option value="planning" selected>Planning</option>
+              <option value="staging">Staging</option>
+              <option value="production">Production</option>
+              <option value="support">Support</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="newProjectGoal">Goal</label>
+          <textarea id="newProjectGoal" class="textarea" name="goal" maxlength="420" placeholder="What is this project trying to accomplish?"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="newProjectNextAction">Next action</label>
+          <textarea id="newProjectNextAction" class="textarea" name="nextAction" maxlength="260" placeholder="What is the next concrete move?"></textarea>
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button id="cancelProjectButton" class="button secondary" type="button">Cancel</button>
+        <button id="createProjectButton" class="button primary" type="submit" disabled>➕ Create project</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "ourdashboard.v1";
+      const LAYOUT_KEY = `${STORAGE_KEY}.layout`;
+
+      const statusLabels = {
+        active: "Active",
+        idea: "Idea",
+        stuck: "Stuck",
+        paused: "Paused",
+        done: "Done"
+      };
+
+      const statusIcons = {
+        active: "🟢",
+        idea: "💡",
+        stuck: "🔴",
+        paused: "⏸️",
+        done: "✅"
+      };
+
+      const stageLabels = {
+        identification: "Identification",
+        management: "Management",
+        discovery: "Discovery",
+        planning: "Planning",
+        staging: "Staging",
+        production: "Production",
+        support: "Support"
+      };
+
+      const stageIcons = {
+        identification: "📍",
+        management: "🧭",
+        discovery: "🔎",
+        planning: "🧩",
+        staging: "🧪",
+        production: "🚀",
+        support: "🛟"
+      };
+
+      const phaseStatusLabels = {
+        planned: "Planned",
+        active: "Active",
+        blocked: "Blocked",
+        done: "Done"
+      };
+
+      const phaseStatusIcons = {
+        planned: "⚪",
+        active: "🟢",
+        blocked: "🔴",
+        done: "✅"
+      };
+
+      const standardPhaseIds = [
+        "identification",
+        "management",
+        "discovery",
+        "planning",
+        "staging",
+        "production",
+        "support"
+      ];
+
+      const plannerBackendLabels = {
+        "microsoft-planner": "Microsoft Planner",
+        jira: "Jira",
+        asana: "Asana"
+      };
+
+      const plannerAccountLabels = {
+        personal: "Personal Microsoft account",
+        enterprise: "Work / enterprise Microsoft 365"
+      };
+
+      const plannerBackendProfiles = {
+        "microsoft-planner": {
+          resourceNameLabel: "Planner plan name",
+          resourceNamePlaceholder: "Example: Internal Automation",
+          resourceUrlLabel: "Planner plan URL",
+          resourceUrlPlaceholder: "Paste Microsoft Planner plan URL",
+          resourceIdLabel: "Planner plan ID",
+          resourceIdPlaceholder: "Optional Microsoft Graph plan ID",
+          credentialLabel: "Microsoft Graph token / local test key",
+          credentialPlaceholder: "Paste Microsoft Graph token for local testing",
+          help: "Microsoft Planner can be personal or enterprise. Enterprise usually goes through Microsoft 365 / Entra ID and Microsoft Graph."
+        },
+        jira: {
+          resourceNameLabel: "Jira project or board name",
+          resourceNamePlaceholder: "Example: AUT Automation Board",
+          resourceUrlLabel: "Jira project / board URL",
+          resourceUrlPlaceholder: "https://your-domain.atlassian.net/jira/software/projects/KEY/boards/123",
+          resourceIdLabel: "Jira project key or board ID",
+          resourceIdPlaceholder: "Example: AUT or 123",
+          credentialLabel: "Atlassian API token",
+          credentialPlaceholder: "Paste Atlassian API token for local testing",
+          help: "Jira maps naturally to projects, boards, epics, issues, statuses, and sprints."
+        },
+        asana: {
+          resourceNameLabel: "Asana project name",
+          resourceNamePlaceholder: "Example: Automation Roadmap",
+          resourceUrlLabel: "Asana project URL",
+          resourceUrlPlaceholder: "Paste Asana project URL",
+          resourceIdLabel: "Asana project GID",
+          resourceIdPlaceholder: "Paste Asana project GID",
+          credentialLabel: "Asana personal access token",
+          credentialPlaceholder: "Paste Asana token for local testing",
+          help: "Asana maps naturally to workspaces, projects, sections, tasks, assignees, and due dates."
+        }
+      };
+
+      const calendarBackendLabels = {
+        "microsoft-365": "Microsoft 365 Calendar",
+        "google-calendar": "Google Calendar",
+        caldav: "CalDAV / ICS"
+      };
+
+      const slugifyModuleId = (value) => String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")
+        .slice(0, 48);
+
+      const normalizeCustomModule = (module) => {
+        const name = String(module?.name || "").trim();
+        const id = slugifyModuleId(module?.id || name);
+        if (!id || !name) return null;
+
+        const reserved = new Set(["overview", "phases", "tasks", "access", "notes", "planner"]);
+        if (reserved.has(id)) return null;
+
+        return {
+          id,
+          icon: String(module.icon || "🧩").trim().slice(0, 4) || "🧩",
+          name: name.slice(0, 80),
+          desc: String(module.desc || module.description || "Custom module installed locally.").trim().slice(0, 220),
+          visibleData: String(module.visibleData || "Custom read-only module data.").trim().slice(0, 260),
+          controlledActions: String(module.controlledActions || "Custom selected actions.").trim().slice(0, 260),
+          custom: true
+        };
+      };
+
+      const moduleDefinitions = [
+        {
+          id: "planner",
+          icon: "📋",
+          name: "Planner",
+          desc: "Connect this project to a planning backend and map OurDashboard project structure to that system.",
+          visibleData: "Plans, boards, buckets, tasks, assignments, due dates, labels, status.",
+          controlledActions: "Convert OurDashboard phases/tasks into the backend planner structure and sync selected task changes.",
+          primary: true
+        },
+        {
+          id: "calendar",
+          icon: "🗓️",
+          name: "Calendar",
+          desc: "Connect project dates, meetings, reminders, and delivery checkpoints.",
+          visibleData: "Calendars, events, attendees, reminders, deadlines, recurring meetings.",
+          controlledActions: "Create/read selected events and attach milestones to project phases."
+        },
+        {
+          id: "gantt",
+          icon: "📈",
+          name: "Gantt",
+          desc: "See project phases and task timing as a schedule view.",
+          visibleData: "Phase windows, task dates, dependencies, slippage, critical path notes.",
+          controlledActions: "Create/update selected schedule records and map phase timing."
+        },
+        {
+          id: "kanban",
+          icon: "🧱",
+          name: "Kanban",
+          desc: "View project work as columns and work-in-progress lanes.",
+          visibleData: "Task status, lane, owner, blocked items, work-in-progress.",
+          controlledActions: "Move selected tasks between lanes and update status."
+        },
+        {
+          id: "risks",
+          icon: "🚦",
+          name: "Risks",
+          desc: "Track risks, blockers, mitigations, and decision pressure.",
+          visibleData: "Risks, severity, likelihood, owner, mitigation status.",
+          controlledActions: "Create/update selected risk records and attach them to phases."
+        },
+        {
+          id: "decisions",
+          icon: "🧾",
+          name: "Decisions",
+          desc: "Record project decisions and why they were made.",
+          visibleData: "Decisions, rationale, approvers, dates, source notes.",
+          controlledActions: "Promote notes into decisions and link decisions to phases."
+        },
+        {
+          id: "users",
+          icon: "👥",
+          name: "Users",
+          desc: "See all users who have been associated with this project.",
+          visibleData: "Owners, contributors, reviewers, stakeholders, permissions.",
+          controlledActions: "Assign roles, mark owners, connect users to modules."
+        },
+        {
+          id: "cloudflare",
+          icon: "☁️",
+          name: "Cloudflare",
+          desc: "See Cloudflare resources associated with this project.",
+          visibleData: "Domains, DNS records, Workers, Pages, D1, KV, routes.",
+          controlledActions: "Create/read selected DNS, deployment, and Worker metadata."
+        },
+        {
+          id: "firebase",
+          icon: "🔥",
+          name: "Firebase",
+          desc: "See Firebase systems for this project.",
+          visibleData: "Apps, Auth, Firestore, Storage, Functions, hosting targets.",
+          controlledActions: "Read/write selected project config and deployment records."
+        },
+        {
+          id: "github",
+          icon: "🐙",
+          name: "GitHub",
+          desc: "See repo data, GitHub Pages status, issues, and project activity.",
+          visibleData: "Repos, branches, issues, PRs, deployments, Pages status.",
+          controlledActions: "Create issues, update labels, link commits, read deployment state."
+        },
+        {
+          id: "stripe",
+          icon: "💳",
+          name: "Stripe",
+          desc: "See Stripe data related to this project.",
+          visibleData: "Products, prices, subscriptions, customers, webhooks.",
+          controlledActions: "Read selected billing objects and map them to project records."
+        },
+        {
+          id: "files",
+          icon: "📁",
+          name: "Files",
+          desc: "See relevant files on your local system for this project.",
+          visibleData: "Local folders, docs, exports, specs, screenshots, artifacts.",
+          controlledActions: "Open, index, tag, and attach selected local files."
+        },
+        {
+          id: "mcp",
+          icon: "🔌",
+          name: "MCP",
+          desc: "See MCP endpoint actions available for this project.",
+          visibleData: "Servers, tools, actions, schemas, permissions, health checks.",
+          controlledActions: "Run selected safe actions and record outputs."
+        },
+        {
+          id: "ourbrain",
+          icon: "🧠",
+          name: "OurBrain",
+          desc: "See relevant AI brain memories connected to this project.",
+          visibleData: "Memories, summaries, decisions, source references, embeddings.",
+          controlledActions: "Attach, update, distill, and retrieve selected memory records."
+        }
+      ];
+
+      const state = {
+        projects: [],
+        selectedId: null,
+        filter: "all",
+        search: "",
+        projectTab: "overview",
+        workspace: "project",
+        modulesOpen: false,
+        openModuleSettings: null,
+        modulesPopoverScrollTop: 0,
+        modulesMode: "list",
+        sidebarCollapsed: false,
+        emojiPickerProjectId: null,
+        emojiSearch: "",
+        settingsTab: "access",
+        saveStatus: "",
+        storageAvailable: true,
+        appSettings: null
+      };
+
+      const els = {
+        html: document.documentElement,
+        storageBanner: document.getElementById("storageBanner"),
+        projectCountText: document.getElementById("projectCountText"),
+        openTaskCount: document.getElementById("openTaskCount"),
+        projectList: document.getElementById("projectList"),
+        workspacePanel: document.getElementById("workspacePanel"),
+        resizeRail: document.getElementById("resizeRail"),
+        searchInput: document.getElementById("searchInput"),
+        filterButtons: [...document.querySelectorAll(".filter-button")],
+        allProjectsButton: document.getElementById("allProjectsButton"),
+        openProjectDialogButton: document.getElementById("openProjectDialogButton"),
+        projectDialog: document.getElementById("projectDialog"),
+        closeDialogButton: document.getElementById("closeDialogButton"),
+        cancelProjectButton: document.getElementById("cancelProjectButton"),
+        projectForm: document.getElementById("projectForm"),
+        newProjectName: document.getElementById("newProjectName"),
+        createProjectButton: document.getElementById("createProjectButton"),
+        exportButton: document.getElementById("exportButton"),
+        importButton: document.getElementById("importButton"),
+        importFile: document.getElementById("importFile")
+      };
+
+      const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      const now = () => new Date().toISOString();
+
+      const emojiCatalog = [
+        { emoji: "🧰", terms: "toolbox tools admin system dashboard project" },
+        { emoji: "📊", terms: "dashboard analytics metrics report table data" },
+        { emoji: "📋", terms: "planner tasks checklist board plan" },
+        { emoji: "🗂️", terms: "folder files archive project index" },
+        { emoji: "🚀", terms: "launch production deploy ship release" },
+        { emoji: "🧠", terms: "brain ai memory knowledge ideas" },
+        { emoji: "☁️", terms: "cloud cloudflare hosting infrastructure dns" },
+        { emoji: "🔥", terms: "firebase fire app backend database" },
+        { emoji: "🐙", terms: "github git repo code pages" },
+        { emoji: "💳", terms: "stripe billing payment subscription money" },
+        { emoji: "🔌", terms: "mcp integration plug api endpoint" },
+        { emoji: "🔐", terms: "security auth access login permissions" },
+        { emoji: "🏢", terms: "directory ad enterprise company users" },
+        { emoji: "🗓️", terms: "calendar date schedule meeting milestone" },
+        { emoji: "📈", terms: "gantt timeline growth chart schedule" },
+        { emoji: "🧱", terms: "kanban board lanes blocks status" },
+        { emoji: "🚦", terms: "risk status traffic blocker issue" },
+        { emoji: "🧾", terms: "decisions document receipt notes record" },
+        { emoji: "🧪", terms: "test staging experiment lab prototype" },
+        { emoji: "🛟", terms: "support help rescue operations" },
+        { emoji: "📍", terms: "identification location marker find discovery" },
+        { emoji: "🧭", terms: "management direction compass operations" },
+        { emoji: "🔎", terms: "discovery search inspect audit" },
+        { emoji: "⚙️", terms: "settings configuration gears admin" },
+        { emoji: "👥", terms: "users team people members" },
+        { emoji: "🏗️", terms: "architecture construction build system" },
+        { emoji: "🛠️", terms: "maintenance repair engineering fix" },
+        { emoji: "💡", terms: "idea innovation lightbulb concept" },
+        { emoji: "✅", terms: "done complete approved success" }
+      ];
+
+      const emojiScore = (item, query) => {
+        const q = query.trim().toLowerCase();
+        if (!q) return 1;
+        const haystack = `${item.emoji} ${item.terms}`.toLowerCase();
+        if (haystack.includes(q)) return 100 - haystack.indexOf(q);
+        let score = 0;
+        let cursor = 0;
+        for (const char of q) {
+          const index = haystack.indexOf(char, cursor);
+          if (index === -1) return 0;
+          score += 4;
+          cursor = index + 1;
+        }
+        return score;
+      };
+
+      const getEmojiMatches = (query) => emojiCatalog
+        .map((item) => ({ ...item, score: emojiScore(item, query) }))
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 32);
+
+      const suggestProjectEmoji = (project) => {
+        const text = `${project.name || ""} ${project.goal || ""} ${project.nextAction || ""} ${stageLabels[project.stage] || ""}`.toLowerCase();
+        const match = getEmojiMatches(text.split(/\s+/).slice(0, 8).join(" "))[0];
+        return project.icon || match?.emoji || "🧰";
+      };
+
+      const sidebarMin = 260;
+      const sidebarMax = 520;
+      const sidebarDefault = 320;
+
+      const clampSidebarWidth = (value) => {
+        const width = Number.parseInt(value, 10);
+        if (Number.isNaN(width)) return sidebarDefault;
+        return Math.min(sidebarMax, Math.max(sidebarMin, width));
+      };
+
+      const saveLayout = () => {
+        if (!state.storageAvailable) return;
+        try {
+          window.localStorage.setItem(LAYOUT_KEY, JSON.stringify({
+            sidebarWidth: clampSidebarWidth(getComputedStyle(document.documentElement).getPropertyValue("--project-sidebar-width")),
+            sidebarCollapsed: Boolean(state.sidebarCollapsed)
+          }));
+        } catch (error) {
+          // Layout persistence is non-critical.
+        }
+      };
+
+      const applySidebarCollapsed = (collapsed, persistLayout = true) => {
+        state.sidebarCollapsed = Boolean(collapsed);
+        document.documentElement.dataset.sidebarCollapsed = String(state.sidebarCollapsed);
+        els.resizeRail?.setAttribute("aria-label", state.sidebarCollapsed ? "Expand project selector" : "Resize project selector");
+        if (persistLayout) saveLayout();
+      };
+
+      const setSidebarWidth = (width, persistLayout = true) => {
+        const clamped = clampSidebarWidth(width);
+        document.documentElement.style.setProperty("--project-sidebar-width", `${clamped}px`);
+        els.resizeRail?.setAttribute("aria-valuenow", String(clamped));
+
+        if (state.sidebarCollapsed) {
+          applySidebarCollapsed(false, false);
+        }
+
+        if (persistLayout) saveLayout();
+      };
+
+      const toggleSidebarCollapsed = () => {
+        applySidebarCollapsed(!state.sidebarCollapsed);
+      };
+
+      const loadLayout = () => {
+        try {
+          const raw = window.localStorage.getItem(LAYOUT_KEY);
+          const parsed = raw ? JSON.parse(raw) : {};
+          setSidebarWidth(parsed.sidebarWidth || sidebarDefault, false);
+          applySidebarCollapsed(Boolean(parsed.sidebarCollapsed), false);
+        } catch (error) {
+          setSidebarWidth(sidebarDefault, false);
+          applySidebarCollapsed(false, false);
+        }
+      };
+
+      const formatDate = (iso) => {
+        if (!iso) return "Not saved";
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return "Unknown";
+        return new Intl.DateTimeFormat(undefined, {
+          month: "short",
+          day: "numeric",
+          year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric"
+        }).format(date);
+      };
+
+      const escapeHtml = (value = "") => String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+      const makePhaseFromStage = (stage, status = "active") => {
+        const normalizedStage = stage === "execution" ? "production" : stage;
+        return {
+          id: uid(),
+          name: stageLabels[normalizedStage] || "Planning",
+          key: stageLabels[normalizedStage] ? normalizedStage : "planning",
+          status,
+          description: "",
+          access: normalizeAccess({}, "project"),
+          createdAt: now()
+        };
+      };
+
+      const normalizePhase = (phase) => {
+        const name = String(phase.name || "").trim();
+        if (!name) return null;
+        return {
+          id: phase.id || uid(),
+          name,
+          key: phase.key || "",
+          status: phaseStatusLabels[phase.status] ? phase.status : "planned",
+          description: String(phase.description || "").trim(),
+          access: normalizeAccess(phase.access, "project"),
+          createdAt: phase.createdAt || now()
+        };
+      };
+
+      const normalizeTask = (task, phaseFallback = "") => {
+        const title = String(task.title || "").trim();
+        if (!title) return null;
+        return {
+          id: task.id || uid(),
+          phaseId: task.phaseId || phaseFallback || "",
+          title,
+          done: Boolean(task.done),
+          access: normalizeAccess(task.access, "phase"),
+          createdAt: task.createdAt || now()
+        };
+      };
+
+      const normalizeNote = (note) => {
+        const body = String(note.body || "").trim();
+        if (!body) return null;
+        return {
+          id: note.id || uid(),
+          body,
+          createdAt: note.createdAt || now()
+        };
+      };
+
+      const normalizeAccess = (access = {}, fallbackVisibility = "project") => ({
+        visibility: ["private", "project", "phase", "assigned", "public"].includes(access.visibility) ? access.visibility : fallbackVisibility,
+        owners: String(access.owners || "").trim(),
+        members: String(access.members || "").trim(),
+        assignee: String(access.assignee || "").trim()
+      });
+
+      const normalizeAppSettings = (settings = {}) => {
+        const customModules = Array.isArray(settings.customModules)
+          ? settings.customModules.map(normalizeCustomModule).filter(Boolean)
+          : [];
+
+        const seen = new Set(moduleDefinitions.map((module) => module.id));
+        const uniqueCustomModules = customModules.filter((module) => {
+          if (seen.has(module.id)) return false;
+          seen.add(module.id);
+          return true;
+        });
+
+        return {
+          access: {
+            invitesEnabled: Boolean(settings.access?.invitesEnabled),
+            localUsersEnabled: settings.access?.localUsersEnabled !== false,
+            adEnabled: Boolean(settings.access?.adEnabled),
+            federationEnabled: Boolean(settings.access?.federationEnabled),
+            defaultRole: ["viewer", "contributor", "project-admin"].includes(settings.access?.defaultRole) ? settings.access.defaultRole : "viewer"
+          },
+          directory: {
+            provider: ["none", "active-directory", "entra-id", "okta", "generic-oidc", "saml"].includes(settings.directory?.provider) ? settings.directory.provider : "none",
+            tenant: String(settings.directory?.tenant || "").trim(),
+            issuerUrl: String(settings.directory?.issuerUrl || "").trim(),
+            clientId: String(settings.directory?.clientId || "").trim()
+          },
+          customModules: uniqueCustomModules
+        };
+      };
+
+      const getModuleDefinitions = () => {
+        const settings = state.appSettings ? normalizeAppSettings(state.appSettings) : normalizeAppSettings({});
+        return [...moduleDefinitions, ...settings.customModules];
+      };
+
+      const normalizeIntegrations = (integrations = {}) => ({
+        planner: {
+          planName: String(integrations.planner?.planName || "").trim(),
+          planUrl: String(integrations.planner?.planUrl || "").trim(),
+          planId: String(integrations.planner?.planId || "").trim(),
+          backendSystem: ["microsoft-planner", "jira", "asana"].includes(integrations.planner?.backendSystem)
+            ? integrations.planner.backendSystem
+            : "microsoft-planner",
+          accountType: ["personal", "enterprise"].includes(integrations.planner?.accountType)
+            ? integrations.planner.accountType
+            : "enterprise",
+          syncMode: ["manual", "backend-to-dashboard", "dashboard-to-backend", "two-way"].includes(integrations.planner?.syncMode)
+            ? integrations.planner.syncMode
+            : ["manual", "planner-to-dashboard", "dashboard-to-planner", "two-way"].includes(integrations.planner?.syncMode)
+              ? integrations.planner.syncMode.replace("planner", "backend")
+              : "manual",
+          status: integrations.planner?.planUrl || integrations.planner?.planId ? "linked" : "not-linked",
+          lastSync: integrations.planner?.lastSync || ""
+        }
+      });
+
+      const normalizeSecretVault = (vault) => {
+        if (!vault || typeof vault !== "object") return null;
+        if (!vault.ciphertext || !vault.iv || !vault.salt) return null;
+        return {
+          alg: vault.alg || "AES-GCM",
+          kdf: vault.kdf || "PBKDF2-SHA256",
+          iterations: Number(vault.iterations || 150000),
+          salt: String(vault.salt),
+          iv: String(vault.iv),
+          ciphertext: String(vault.ciphertext),
+          updatedAt: vault.updatedAt || now()
+        };
+      };
+
+      const defaultModuleSettings = (moduleId, existing = {}, integrations = {}) => {
+        if (moduleId === "planner") {
+          const planner = normalizeIntegrations(integrations).planner;
+          return {
+            backendSystem: ["microsoft-planner", "jira", "asana"].includes(existing.backendSystem) ? existing.backendSystem : planner.backendSystem,
+            accountType: ["personal", "enterprise"].includes(existing.accountType) ? existing.accountType : planner.accountType,
+            externalName: String(existing.externalName || planner.planName || "").trim(),
+            externalUrl: String(existing.externalUrl || planner.planUrl || "").trim(),
+            externalId: String(existing.externalId || planner.planId || "").trim(),
+            syncMode: ["manual", "backend-to-dashboard", "dashboard-to-backend", "two-way"].includes(existing.syncMode) ? existing.syncMode : planner.syncMode
+          };
+        }
+
+        if (moduleId === "calendar") {
+          return {
+            backendSystem: ["microsoft-365", "google-calendar", "caldav"].includes(existing.backendSystem) ? existing.backendSystem : "microsoft-365",
+            externalName: String(existing.externalName || "").trim(),
+            externalUrl: String(existing.externalUrl || "").trim(),
+            externalId: String(existing.externalId || "").trim()
+          };
+        }
+
+        return {
+          externalName: String(existing.externalName || "").trim(),
+          externalUrl: String(existing.externalUrl || "").trim(),
+          externalId: String(existing.externalId || "").trim()
+        };
+      };
+
+      const normalizeModules = (modules = {}, integrations = {}) => {
+        const normalizedIntegrations = normalizeIntegrations(integrations);
+        return Object.fromEntries(getModuleDefinitions().map((module) => {
+          const raw = modules[module.id] || {};
+          const legacyPlannerLinked = module.id === "planner" && normalizedIntegrations.planner.status === "linked";
+          const secretVault = normalizeSecretVault(raw.secretVault);
+          const settings = defaultModuleSettings(module.id, raw.settings || {}, normalizedIntegrations);
+          const enabled = Boolean(raw.enabled || raw === true || legacyPlannerLinked);
+          const configured = Boolean(raw.configured || (legacyPlannerLinked && enabled));
+          return [module.id, {
+            enabled,
+            configured,
+            settings,
+            secretVault,
+            lastConfirmed: raw.lastConfirmed || "",
+            lastSettingsUpdate: raw.lastSettingsUpdate || ""
+          }];
+        }));
+      };
+
+      const normalizeProject = (project) => {
+        const phases = Array.isArray(project.phases)
+          ? project.phases.map(normalizePhase).filter(Boolean)
+          : [];
+
+        if (phases.length === 0 && Array.isArray(project.tasks) && project.tasks.length > 0) {
+          phases.push(makePhaseFromStage(project.stage || "planning", "active"));
+        }
+
+        const fallbackPhaseId = phases[0]?.id || "";
+
+        const normalizedStage = project.stage === "execution" ? "production" : project.stage;
+
+        return {
+          id: project.id || uid(),
+          name: String(project.name || "").trim(),
+          icon: String(project.icon || "").trim().slice(0, 8),
+          status: statusLabels[project.status] ? project.status : "active",
+          stage: stageLabels[normalizedStage] ? normalizedStage : "planning",
+          goal: String(project.goal || "").trim(),
+          nextAction: String(project.nextAction || "").trim(),
+          access: normalizeAccess(project.access, "project"),
+          phases,
+          tasks: Array.isArray(project.tasks) ? project.tasks.map((task) => normalizeTask(task, fallbackPhaseId)).filter(Boolean) : [],
+          notes: Array.isArray(project.notes) ? project.notes.map(normalizeNote).filter(Boolean) : [],
+          integrations: normalizeIntegrations(project.integrations),
+          modules: normalizeModules(project.modules, project.integrations),
+          createdAt: project.createdAt || now(),
+          updatedAt: project.updatedAt || now()
+        };
+      };
+
+      const loadState = () => {
+        try {
+          const testKey = `${STORAGE_KEY}.test`;
+          window.localStorage.setItem(testKey, "ok");
+          window.localStorage.removeItem(testKey);
+
+          const raw = window.localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            state.projects = [];
+            state.selectedId = null;
+            state.workspace = "table";
+            state.appSettings = normalizeAppSettings({});
+            return;
+          }
+
+          const parsed = JSON.parse(raw);
+          state.appSettings = normalizeAppSettings(parsed.appSettings);
+          state.projects = Array.isArray(parsed.projects)
+            ? parsed.projects.map(normalizeProject).filter((project) => project.name)
+            : [];
+          state.selectedId = parsed.selectedId && state.projects.some((project) => project.id === parsed.selectedId)
+            ? parsed.selectedId
+            : state.projects[0]?.id || null;
+          state.workspace = state.selectedId ? "project" : "table";
+        } catch (error) {
+          state.storageAvailable = false;
+          state.projects = [];
+          state.selectedId = null;
+          state.workspace = "table";
+          state.appSettings = normalizeAppSettings({});
+          showStorageError("Local storage is not available. You can still use the dashboard during this session, but changes may not persist.");
+        }
+      };
+
+      const persist = (message = "Saved") => {
+        if (!state.storageAvailable) {
+          state.saveStatus = "Session only";
+          renderWorkspace();
+          return;
+        }
+
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            projects: state.projects,
+            selectedId: state.selectedId,
+            appSettings: state.appSettings,
+            version: 1
+          }));
+          state.saveStatus = message;
+          render();
+        } catch (error) {
+          state.storageAvailable = false;
+          state.saveStatus = "Save failed";
+          showStorageError("Changes could not be saved. Export your data if you need to keep the current session.");
+          render();
+        }
+      };
+
+      const showStorageError = (message) => {
+        els.storageBanner.textContent = `⚠️ ${message}`;
+        els.storageBanner.setAttribute("aria-hidden", "false");
+      };
+
+      const getSelectedProject = () => state.projects.find((project) => project.id === state.selectedId) || null;
+      const getPhase = (project, phaseId) => project.phases.find((phase) => phase.id === phaseId) || null;
+      const phaseLabel = (project, phaseId) => getPhase(project, phaseId)?.name || "Unassigned";
+
+      const updateProject = (id, patch) => {
+        const project = state.projects.find((item) => item.id === id);
+        if (!project) return;
+        Object.assign(project, patch, { updatedAt: now() });
+        persist("Saved");
+      };
+
+      const filteredProjects = () => {
+        const query = state.search.trim().toLowerCase();
+
+        return state.projects
+          .filter((project) => state.filter === "all" || project.status === state.filter)
+          .filter((project) => {
+            if (!query) return true;
+            return [
+              project.name,
+              project.goal,
+              project.nextAction,
+              statusLabels[project.status],
+              stageLabels[project.stage],
+              ...project.phases.map((phase) => phase.name)
+            ].join(" ").toLowerCase().includes(query);
+          })
+          .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      };
+
+      const countOpenTasks = (projectList = state.projects) => projectList.reduce((total, project) => {
+        return total + project.tasks.filter((task) => !task.done).length;
+      }, 0);
+
+      const captureModulesScroll = () => {
+        const popover = document.querySelector(".modules-popover");
+        if (popover) state.modulesPopoverScrollTop = popover.scrollTop;
+      };
+
+      const restoreModulesScroll = () => {
+        if (!state.modulesOpen) return;
+        const popover = document.querySelector(".modules-popover");
+        if (!popover) return;
+        window.requestAnimationFrame(() => {
+          popover.scrollTop = state.modulesPopoverScrollTop || 0;
+        });
+      };
+
+      const updateNavScrollIndicators = () => {
+        const inner = document.querySelector(".detail-nav-inner");
+        const tabs = document.querySelector(".detail-tabs");
+        if (!inner || !tabs) return;
+
+        const maxScroll = Math.max(0, tabs.scrollWidth - tabs.clientWidth);
+        inner.classList.toggle("can-scroll-left", tabs.scrollLeft > 4);
+        inner.classList.toggle("can-scroll-right", tabs.scrollLeft < maxScroll - 4);
+      };
+
+      const bindNavScrollIndicators = () => {
+        const tabs = document.querySelector(".detail-tabs");
+        if (!tabs) return;
+
+        if (tabs.dataset.scrollBound !== "true") {
+          tabs.dataset.scrollBound = "true";
+          let dragStartX = 0;
+          let dragStartScroll = 0;
+          let isDragging = false;
+
+          const stopDrag = () => {
+            isDragging = false;
+            tabs.classList.remove("is-nav-dragging");
+            window.removeEventListener("pointermove", onDragMove);
+            window.removeEventListener("pointerup", stopDrag);
+            window.removeEventListener("pointercancel", stopDrag);
+          };
+
+          const onDragMove = (event) => {
+            if (!isDragging) return;
+            const delta = event.clientX - dragStartX;
+            tabs.scrollLeft = dragStartScroll - delta;
+            updateNavScrollIndicators();
+          };
+
+          tabs.addEventListener("scroll", updateNavScrollIndicators, { passive: true });
+          tabs.addEventListener("wheel", (event) => {
+            if (tabs.scrollWidth <= tabs.clientWidth) return;
+
+            const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+              ? event.deltaX
+              : event.deltaY;
+
+            if (!delta) return;
+
+            tabs.scrollLeft += delta;
+            event.preventDefault();
+            updateNavScrollIndicators();
+          }, { passive: false });
+
+          tabs.addEventListener("pointerdown", (event) => {
+            if (event.button !== 0 || tabs.scrollWidth <= tabs.clientWidth) return;
+            if (event.target.closest("button, input, select, textarea, a")) return;
+
+            isDragging = true;
+            dragStartX = event.clientX;
+            dragStartScroll = tabs.scrollLeft;
+            tabs.classList.add("is-nav-dragging");
+            tabs.setPointerCapture?.(event.pointerId);
+            window.addEventListener("pointermove", onDragMove);
+            window.addEventListener("pointerup", stopDrag, { once: true });
+            window.addEventListener("pointercancel", stopDrag, { once: true });
+          });
+        }
+
+        window.requestAnimationFrame(updateNavScrollIndicators);
+      };
+
+      const render = () => {
+        renderSummary();
+        renderFilters();
+        renderProjectList();
+        renderWorkspace();
+      };
+
+      const renderSummary = () => {
+        const count = state.projects.length;
+        const activeCount = state.projects.filter((project) => project.status === "active").length;
+        const visibleCount = filteredProjects().length;
+
+        els.projectCountText.textContent = count === 0
+          ? "No projects yet."
+          : `${visibleCount} shown · ${activeCount} active · ${count} total`;
+
+        els.openTaskCount.textContent = countOpenTasks();
+        els.openTaskCount.title = `${countOpenTasks()} open ${countOpenTasks() === 1 ? "task" : "tasks"}`;
+      };
+
+      const renderFilters = () => {
+        els.filterButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.filter === state.filter));
+        });
+      };
+
+      const renderEmojiPicker = (project) => {
+        const matches = getEmojiMatches(state.emojiSearch);
+        return `
+          <div class="emoji-picker" role="dialog" aria-label="Choose project emoji">
+            <div class="emoji-picker-head">
+              <h3>Choose project emoji</h3>
+              <input class="input" type="search" data-action="emoji-search" data-project-id="${project.id}" value="${escapeHtml(state.emojiSearch)}" placeholder="Search: cloud, code, calendar, risk…" autocomplete="off" />
+            </div>
+            <div class="emoji-grid">
+              ${matches.map((item) => `
+                <button class="emoji-option" type="button" data-action="select-project-emoji" data-project-id="${project.id}" data-emoji="${escapeHtml(item.emoji)}" title="${escapeHtml(item.terms)}">${item.emoji}</button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      };
+
+      const renderProjectEmojiControl = (project) => `
+        <span class="emoji-picker-anchor">
+          <button class="emoji-button" type="button" data-action="toggle-emoji-picker" data-project-id="${project.id}" aria-label="Choose emoji for ${escapeHtml(project.name)}" aria-expanded="${state.emojiPickerProjectId === project.id}">
+            ${escapeHtml(suggestProjectEmoji(project))}
+          </button>
+          ${state.emojiPickerProjectId === project.id ? renderEmojiPicker(project) : ""}
+        </span>
+      `;
+
+      const renderProjectList = () => {
+        const projects = filteredProjects();
+
+        if (state.projects.length === 0) {
+          els.projectList.innerHTML = `
+            <div class="empty">
+              <div class="empty-inner">
+                <div class="empty-icon" aria-hidden="true">🗂️</div>
+                <h2>No projects yet</h2>
+                <p>Add your first project when you are ready. The dashboard starts clean and only stores what you create.</p>
+                <button class="button primary" type="button" data-action="open-project-dialog">➕ Add project</button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        if (projects.length === 0) {
+          els.projectList.innerHTML = `
+            <div class="empty">
+              <div class="empty-inner">
+                <div class="empty-icon" aria-hidden="true">🔎</div>
+                <h2>No matching projects</h2>
+                <p>Clear the search or switch filters to see more projects.</p>
+                <button class="button secondary" type="button" data-action="clear-filters">Clear filters</button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        els.projectList.innerHTML = projects.map((project) => {
+          const openTasks = project.tasks.filter((task) => !task.done).length;
+          const selected = project.id === state.selectedId && state.workspace === "project";
+          return `
+            <button class="project-row" type="button" role="option" aria-selected="${selected}" data-project-id="${project.id}">
+              <span class="project-status-rail ${project.status}" aria-hidden="true"></span>
+              <span class="project-row-main">
+                <span class="project-name-line">
+                  <span class="project-title-main">
+                    <span class="project-emoji" aria-hidden="true">${escapeHtml(suggestProjectEmoji(project))}</span>
+                    <span class="project-name">${escapeHtml(project.name)}</span>
+                  </span>
+                </span>
+                <span class="project-meta">
+                  <span>${statusIcons[project.status]} ${statusLabels[project.status]}</span>
+                  <span>${stageIcons[project.stage]} ${stageLabels[project.stage]}</span>
+                  <span>🧩 ${project.phases.length}</span>
+                </span>
+                <span class="project-next">${escapeHtml(project.nextAction || "No next action set.")}</span>
+              </span>
+              <span class="project-row-aside" aria-label="${openTasks} open tasks and ${project.notes.length} notes">
+                <span class="mini-metric">☑️ ${openTasks}</span>
+                <span class="mini-metric">📝 ${project.notes.length}</span>
+              </span>
+            </button>
+          `;
+        }).join("");
+      };
+
+      const renderWorkspace = () => {
+        if (state.workspace === "settings") state.workspace = "table";
+
+        if (state.workspace === "table" || !getSelectedProject()) {
+          renderAllProjectsTable();
+        } else {
+          renderProjectConsole();
+        }
+        bindNavScrollIndicators();
+        restoreModulesScroll();
+      };
+
+      const renderSettingsTabs = () => {
+        const tabs = [
+          { id: "access", label: "Access", icon: "🔐" },
+          { id: "directory", label: "Directory", icon: "🏢" },
+          { id: "federation", label: "Federation", icon: "🌐" }
+        ];
+
+        return `
+          <nav class="settings-tabs" aria-label="Settings sections">
+            ${tabs.map((tab) => `
+              <button
+                class="tab-button"
+                type="button"
+                data-action="switch-settings-tab"
+                data-settings-tab="${tab.id}"
+                aria-selected="${state.settingsTab === tab.id}"
+              >
+                <span class="tab-icon" aria-hidden="true">${tab.icon}</span>
+                <span>${tab.label}</span>
+              </button>
+            `).join("")}
+          </nav>
+        `;
+      };
+
+      const renderSettingsWorkspace = () => {
+        const settings = normalizeAppSettings(state.appSettings);
+
+        const accessPanel = `
+          <section class="settings-panel">
+            <div class="console-empty">
+              <h3>Least-privilege access model</h3>
+              <p>Access should layer from app sign-in, to dashboard role, to project membership, to phase visibility, to task assignment.</p>
+            </div>
+
+            <form class="form-grid" data-action="save-app-access-settings">
+              <div class="field">
+                <label for="defaultRole">Default role after invite</label>
+                <select id="defaultRole" class="select" name="defaultRole">
+                  <option value="viewer" ${settings.access.defaultRole === "viewer" ? "selected" : ""}>Viewer</option>
+                  <option value="contributor" ${settings.access.defaultRole === "contributor" ? "selected" : ""}>Contributor</option>
+                  <option value="project-admin" ${settings.access.defaultRole === "project-admin" ? "selected" : ""}>Project admin</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <span class="field-label">Access switches</span>
+                <label><input type="checkbox" name="localUsersEnabled" ${settings.access.localUsersEnabled ? "checked" : ""}> Local users enabled</label>
+                <label><input type="checkbox" name="invitesEnabled" ${settings.access.invitesEnabled ? "checked" : ""}> Invite users</label>
+                <label><input type="checkbox" name="adEnabled" ${settings.access.adEnabled ? "checked" : ""}> Connect Active Directory / Entra ID</label>
+                <label><input type="checkbox" name="federationEnabled" ${settings.access.federationEnabled ? "checked" : ""}> Federation / SSO ready</label>
+              </div>
+
+              <div class="field full">
+                <button class="button primary" type="submit">💾 Save access settings</button>
+              </div>
+            </form>
+
+            <div class="access-grid">
+              <div class="access-row">
+                <div><strong>App access</strong><span>Who can sign into OurDashboard.</span></div>
+                <span class="badge ${settings.access.invitesEnabled || settings.access.localUsersEnabled ? "active" : "paused"}">${settings.access.invitesEnabled ? "Invites ready" : settings.access.localUsersEnabled ? "Local users" : "Locked down"}</span>
+              </div>
+              <div class="access-row">
+                <div><strong>Project access</strong><span>Who can see or administer a project.</span></div>
+                <span class="badge">Configured per project</span>
+              </div>
+              <div class="access-row">
+                <div><strong>Phase access</strong><span>Who can see work inside a project phase.</span></div>
+                <span class="badge">Configured per phase</span>
+              </div>
+              <div class="access-row">
+                <div><strong>Task access</strong><span>Who owns or can see the narrowest work item.</span></div>
+                <span class="badge">Configured per task</span>
+              </div>
+            </div>
+          </section>
+        `;
+
+        const directoryPanel = `
+          <section class="settings-panel">
+            <form class="form-grid" data-action="save-directory-settings">
+              <div class="field">
+                <label for="directoryProvider">Directory provider</label>
+                <select id="directoryProvider" class="select" name="provider">
+                  <option value="none" ${settings.directory.provider === "none" ? "selected" : ""}>None / local testing</option>
+                  <option value="active-directory" ${settings.directory.provider === "active-directory" ? "selected" : ""}>Active Directory</option>
+                  <option value="entra-id" ${settings.directory.provider === "entra-id" ? "selected" : ""}>Microsoft Entra ID</option>
+                  <option value="okta" ${settings.directory.provider === "okta" ? "selected" : ""}>Okta</option>
+                  <option value="generic-oidc" ${settings.directory.provider === "generic-oidc" ? "selected" : ""}>Generic OIDC</option>
+                  <option value="saml" ${settings.directory.provider === "saml" ? "selected" : ""}>SAML</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="directoryTenant">Tenant / domain</label>
+                <input id="directoryTenant" class="input" name="tenant" type="text" value="${escapeHtml(settings.directory.tenant)}" placeholder="example.com or tenant ID" />
+              </div>
+              <div class="field">
+                <label for="directoryIssuer">Issuer URL</label>
+                <input id="directoryIssuer" class="input" name="issuerUrl" type="url" value="${escapeHtml(settings.directory.issuerUrl)}" placeholder="OIDC/SAML issuer URL" />
+              </div>
+              <div class="field">
+                <label for="directoryClientId">Client ID</label>
+                <input id="directoryClientId" class="input" name="clientId" type="text" value="${escapeHtml(settings.directory.clientId)}" placeholder="Application/client ID" />
+              </div>
+              <div class="field full">
+                <button class="button primary" type="submit">💾 Save directory settings</button>
+              </div>
+            </form>
+          </section>
+        `;
+
+        const federationPanel = `
+          <section class="settings-panel">
+            <div class="console-empty">
+              <h3>Federation placeholder</h3>
+              <p>This is where SSO, group claims, role mapping, SCIM, audit logging, and backend policy enforcement will live. The UI is ready, but it is not connected yet.</p>
+            </div>
+            <div class="access-grid">
+              <div class="access-row"><div><strong>Role mapping</strong><span>Map identity groups to dashboard roles.</span></div><span class="badge">Coming soon</span></div>
+              <div class="access-row"><div><strong>Audit trail</strong><span>Track who changed project data and module settings.</span></div><span class="badge">Coming soon</span></div>
+              <div class="access-row"><div><strong>Policy engine</strong><span>Enforce least privilege from the backend.</span></div><span class="badge">Coming soon</span></div>
+              <div class="access-row"><div><strong>Invite workflow</strong><span>Invite users into the dashboard system.</span></div><span class="badge">Coming soon</span></div>
+            </div>
+          </section>
+        `;
+
+        const activePanel = state.settingsTab === "directory" ? directoryPanel : state.settingsTab === "federation" ? federationPanel : accessPanel;
+
+        els.workspacePanel.innerHTML = `
+          <div class="table-header">
+            <div class="table-title">
+              <h2 id="workspaceHeading">⚙️ Settings</h2>
+              <p>Authentication, user access, directory connection, and federation scaffolding.</p>
+            </div>
+            <div class="table-actions">
+              <button class="button secondary" type="button" data-action="show-sign-in-placeholder">🔐 Sign in</button>
+            </div>
+          </div>
+          ${renderSettingsTabs()}
+          <div class="table-body">
+            ${activePanel}
+          </div>
+        `;
+      };
+
+      const renderAllProjectsTable = () => {
+        const projects = filteredProjects();
+        const totalOpen = countOpenTasks(projects);
+
+        if (state.projects.length === 0) {
+          els.workspacePanel.innerHTML = `
+            <div class="empty">
+              <div class="empty-inner">
+                <div class="empty-icon" aria-hidden="true">📊</div>
+                <h2 id="workspaceHeading">All projects</h2>
+                <p>Your project table will appear here after you add projects.</p>
+                <button class="button primary" type="button" data-action="open-project-dialog">➕ Add project</button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        els.workspacePanel.innerHTML = `
+          <div class="table-header">
+            <div class="table-title">
+              <h2 id="workspaceHeading">📊 All projects</h2>
+              <p>Full table view across projects, phases, tasks, notes, and current status.</p>
+            </div>
+            <div class="table-actions">
+              <button class="button secondary" type="button" data-action="clear-filters">Clear filters</button>
+              <button class="button primary" type="button" data-action="open-project-dialog">➕ Add project</button>
+            </div>
+          </div>
+
+          <div class="table-body">
+            <div class="metadata-row">
+              <span>🗂️ ${projects.length} shown</span>
+              <span>☑️ ${totalOpen} open tasks</span>
+              <span>🧩 ${projects.reduce((total, project) => total + project.phases.length, 0)} phases</span>
+            </div>
+
+            <div class="table-wrap">
+              <table class="project-table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Stage</th>
+                    <th>Phases</th>
+                    <th>Tasks</th>
+                    <th>Notes</th>
+                    <th>Planner</th>
+                    <th>Updated</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${projects.map((project) => {
+                    const openTasks = project.tasks.filter((task) => !task.done).length;
+                    const doneTasks = project.tasks.length - openTasks;
+                    return `
+                      <tr>
+                        <td>
+                          <div class="table-project-name">${escapeHtml(project.name)}</div>
+                          <div class="table-subtle">${escapeHtml(project.nextAction || "No next action set.")}</div>
+                        </td>
+                        <td><span class="badge ${project.status}">${statusIcons[project.status]} ${statusLabels[project.status]}</span></td>
+                        <td>${stageIcons[project.stage]} ${stageLabels[project.stage]}</td>
+                        <td>${project.phases.length}</td>
+                        <td>☑️ ${openTasks} open<br><span class="table-subtle">✅ ${doneTasks} done</span></td>
+                        <td>📝 ${project.notes.length}</td>
+                        <td>${project.modules?.planner?.configured ? "📋 Ready" : "—"}</td>
+                        <td>${formatDate(project.updatedAt)}</td>
+                        <td><button class="button secondary small" type="button" data-action="open-project" data-project-id="${project.id}">Open project</button></td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      };
+
+      const renderProjectNav = (project) => {
+        const openTasks = project.tasks.filter((task) => !task.done).length;
+        const enabledModules = getModuleDefinitions()
+          .filter((module) => project.modules?.[module.id]?.enabled)
+          .map((module) => ({
+            id: `module:${module.id}`,
+            label: module.name,
+            icon: module.icon,
+            description: module.desc,
+            count: ""
+          }));
+
+        const tabs = [
+          { id: "overview", label: "Overview", icon: "📌", description: "Goal, status, stage, and next action", count: "" },
+          { id: "phases", label: "Phases", icon: "🧩", description: "Project phases and phase-owned work", count: project.phases.length },
+          { id: "tasks", label: "Tasks", icon: "☑️", description: "All project tasks grouped by phase", count: openTasks },
+          { id: "notes", label: "Notes", icon: "📝", description: "Context and decisions", count: project.notes.length },
+          ...enabledModules
+        ];
+
+        return `
+          <nav class="detail-nav" aria-label="Project sections">
+            <div class="detail-nav-inner">
+              <div class="detail-tabs" role="tablist">
+                ${tabs.map((tab) => `
+                  <button
+                    class="tab-button"
+                    type="button"
+                    role="tab"
+                    id="tab-${tab.id.replace(":", "-")}"
+                    aria-selected="${state.projectTab === tab.id}"
+                    aria-controls="panel-${tab.id.replace(":", "-")}"
+                    data-action="switch-project-tab"
+                    data-tab="${tab.id}"
+                    title="${escapeHtml(tab.description)}"
+                  >
+                    <span class="tab-icon" aria-hidden="true">${tab.icon}</span>
+                    <span class="tab-label">
+                      <span>${tab.label}</span>
+                      ${tab.count !== "" ? `<span class="tab-count" aria-label="${tab.count} ${tab.label.toLowerCase()}">${tab.count}</span>` : ""}
+                    </span>
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          </nav>
+        `;
+      };
+
+      const renderOverviewPanel = (project) => {
+        const openTasks = project.tasks.filter((task) => !task.done).length;
+        const doneTasks = project.tasks.length - openTasks;
+
+        return `
+          <section id="panel-overview" class="tab-panel" role="tabpanel" aria-labelledby="tab-overview">
+            <form class="form-grid" data-action="edit-project" data-project-id="${project.id}">
+              <div class="field full">
+                <label for="projectName">Project name</label>
+                <input id="projectName" class="input" name="name" type="text" maxlength="80" value="${escapeHtml(project.name)}" required />
+              </div>
+
+              <div class="field">
+                <label for="projectStatus">Status</label>
+                <select id="projectStatus" class="select" name="status">
+                  ${Object.entries(statusLabels).map(([value, label]) => `
+                    <option value="${value}" ${project.status === value ? "selected" : ""}>${statusIcons[value]} ${label}</option>
+                  `).join("")}
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="projectStage">Current stage</label>
+                <select id="projectStage" class="select" name="stage">
+                  ${Object.entries(stageLabels).map(([value, label]) => `
+                    <option value="${value}" ${project.stage === value ? "selected" : ""}>${stageIcons[value]} ${label}</option>
+                  `).join("")}
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="projectGoal">Goal</label>
+                <textarea id="projectGoal" class="textarea" name="goal" maxlength="420" placeholder="What is this project trying to accomplish?">${escapeHtml(project.goal)}</textarea>
+              </div>
+
+              <div class="field full">
+                <label for="projectNextAction">Next action</label>
+                <textarea id="projectNextAction" class="textarea" name="nextAction" maxlength="260" placeholder="What is the next concrete move?">${escapeHtml(project.nextAction)}</textarea>
+              </div>
+
+              <div class="field full">
+                <button class="button primary" type="submit">💾 Save overview</button>
+                <span class="save-state" role="status">${escapeHtml(state.saveStatus)}</span>
+              </div>
+            </form>
+
+            <section class="section" aria-labelledby="overviewHealthHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="overviewHealthHeading">🧭 Project state</h3>
+                  <p class="section-subtle">A compact readout for where this project is and what still needs attention.</p>
+                </div>
+              </div>
+
+              <div class="metadata-row" aria-label="Project metadata">
+                <span>🕒 Created ${formatDate(project.createdAt)}</span>
+                <span>✏️ Updated ${formatDate(project.updatedAt)}</span>
+                <span>🧩 ${project.phases.length} phases</span>
+                <span>☑️ ${openTasks} open</span>
+                <span>✅ ${doneTasks} done</span>
+                <span>📝 ${project.notes.length} ${project.notes.length === 1 ? "note" : "notes"}</span>
+              </div>
+            </section>
+          </section>
+        `;
+      };
+
+      const renderPhasesPanel = (project) => {
+        const hasStandardPhases = standardPhaseIds.every((key) => project.phases.some((phase) => phase.key === key || phase.name.toLowerCase() === stageLabels[key].toLowerCase()));
+
+        return `
+          <section id="panel-phases" class="tab-panel" role="tabpanel" aria-labelledby="tab-phases">
+            <section class="section" aria-labelledby="phasesHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="phasesHeading">🧩 Phases</h3>
+                  <p class="section-subtle">Phases are the containers for tasks. The Tasks tab shows every task with its attached phase.</p>
+                </div>
+                <button class="button secondary small" type="button" data-action="add-standard-phases" data-project-id="${project.id}" ${hasStandardPhases ? "disabled" : ""}>➕ Add standard phases</button>
+              </div>
+
+              <form class="phase-form" data-action="add-phase" data-project-id="${project.id}">
+                <label class="sr-only" for="phaseNameInput">Phase name</label>
+                <input id="phaseNameInput" class="input" name="name" type="text" maxlength="80" placeholder="Add a phase" autocomplete="off" />
+                <label class="sr-only" for="phaseStatusInput">Phase status</label>
+                <select id="phaseStatusInput" class="select" name="status">
+                  <option value="planned">Planned</option>
+                  <option value="active">Active</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="done">Done</option>
+                </select>
+                <button class="button secondary" type="submit">➕ Add phase</button>
+              </form>
+
+              ${project.phases.length === 0 ? `
+                <div class="console-empty">
+                  <h3>🧩 No phases yet</h3>
+                  <p>Add a phase before adding tasks. Each task should belong to a phase.</p>
+                </div>
+              ` : `
+                <ul class="phase-list">
+                  ${project.phases.map((phase) => {
+                    const phaseTasks = project.tasks.filter((task) => task.phaseId === phase.id);
+                    const openTasks = phaseTasks.filter((task) => !task.done).length;
+                    return `
+                      <li class="phase-item">
+                        <div>
+                          <div class="phase-title-line">
+                            <h4 class="phase-title">${escapeHtml(phase.name)}</h4>
+                            <select class="select phase-status-pill ${phase.status === "blocked" ? "stuck" : phase.status === "done" ? "done" : phase.status === "active" ? "active" : "paused"}" aria-label="Set phase status for ${escapeHtml(phase.name)}" data-action="change-phase-status" data-project-id="${project.id}" data-phase-id="${phase.id}">
+                              ${Object.entries(phaseStatusLabels).map(([value, label]) => `<option value="${value}" ${phase.status === value ? "selected" : ""}>${phaseStatusIcons[value]} ${label}</option>`).join("")}
+                            </select>
+                            <span class="task-phase">☑️ ${openTasks} open · ✅ ${phaseTasks.length - openTasks} done</span>
+                            <button class="button ghost small phase-delete-button" type="button" title="Delete ${escapeHtml(phase.name)}" aria-label="Delete phase ${escapeHtml(phase.name)}" data-action="delete-phase" data-project-id="${project.id}" data-phase-id="${phase.id}">🗑️</button>
+                          </div>
+                          ${phase.description ? `<p class="phase-desc">${escapeHtml(phase.description)}</p>` : ""}
+                          <form class="phase-task-form" data-action="add-task" data-project-id="${project.id}" data-phase-id="${phase.id}">
+                            <label class="sr-only" for="phaseTask-${phase.id}">Task for ${escapeHtml(phase.name)}</label>
+                            <input id="phaseTask-${phase.id}" class="input" name="title" type="text" maxlength="140" placeholder="Add task to ${escapeHtml(phase.name)}" autocomplete="off" />
+                            <button class="button secondary" type="submit">➕ Add task</button>
+                          </form>
+                        </div>
+                      </li>
+                    `;
+                  }).join("")}
+                </ul>
+              `}
+            </section>
+          </section>
+        `;
+      };
+
+      const renderTasksPanel = (project) => {
+        const phaseOptions = project.phases.map((phase) => `<option value="${phase.id}">${escapeHtml(phase.name)}</option>`).join("");
+
+        return `
+          <section id="panel-tasks" class="tab-panel" role="tabpanel" aria-labelledby="tab-tasks">
+            <section class="section" aria-labelledby="tasksHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="tasksHeading">☑️ Tasks</h3>
+                  <p class="section-subtle">All project tasks are shown here with the phase they belong to.</p>
+                </div>
+              </div>
+
+              ${project.phases.length === 0 ? `
+                <div class="console-empty">
+                  <h3>🧩 Add a phase first</h3>
+                  <p>Tasks are phase-owned in this version. Add a phase, then attach tasks to it.</p>
+                  <button class="button secondary" type="button" data-action="switch-project-tab" data-tab="phases">Open phases</button>
+                </div>
+              ` : `
+                <form class="inline-form" data-action="add-task" data-project-id="${project.id}">
+                  <label class="sr-only" for="taskInput">New task</label>
+                  <input id="taskInput" class="input" name="title" type="text" maxlength="140" placeholder="Add a task" autocomplete="off" />
+                  <label class="sr-only" for="taskPhaseInput">Task phase</label>
+                  <select id="taskPhaseInput" class="select" name="phaseId">${phaseOptions}</select>
+                  <button class="button secondary" type="submit">➕ Add task</button>
+                </form>
+              `}
+
+              ${project.tasks.length === 0 ? `
+                <div class="console-empty">
+                  <h3>☑️ No tasks yet</h3>
+                  <p>Add work items from this tab or directly inside a phase.</p>
+                </div>
+              ` : `
+                <ul class="task-list">
+                  ${project.tasks.map((task) => `
+                    <li class="task-item">
+                      <input class="task-check" type="checkbox" ${task.done ? "checked" : ""} aria-label="Mark task as ${task.done ? "open" : "done"}" data-action="toggle-task" data-project-id="${project.id}" data-task-id="${task.id}" />
+                      <span class="task-main">
+                        <span class="task-title ${task.done ? "done" : ""}">${escapeHtml(task.title)}</span>
+                        <span class="task-phase">🧩 ${escapeHtml(phaseLabel(project, task.phaseId))}</span>
+                      </span>
+                      <button class="button ghost small" type="button" aria-label="Delete task" data-action="delete-task" data-project-id="${project.id}" data-task-id="${task.id}">🗑️</button>
+                    </li>
+                  `).join("")}
+                </ul>
+              `}
+            </section>
+          </section>
+        `;
+      };
+
+      const renderNotesPanel = (project) => {
+        return `
+          <section id="panel-notes" class="tab-panel" role="tabpanel" aria-labelledby="tab-notes">
+            <section class="section" aria-labelledby="notesHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="notesHeading">📝 Notes</h3>
+                  <p class="section-subtle">Capture context, decisions, links, or anything you need to remember.</p>
+                </div>
+              </div>
+
+              <form class="section" data-action="add-note" data-project-id="${project.id}">
+                <label class="sr-only" for="noteInput">New note</label>
+                <textarea id="noteInput" class="textarea" name="body" maxlength="1600" placeholder="Add a note"></textarea>
+                <div>
+                  <button class="button secondary" type="submit">➕ Add note</button>
+                </div>
+              </form>
+
+              ${project.notes.length === 0 ? `
+                <div class="console-empty">
+                  <h3>📝 No notes yet</h3>
+                  <p>Use notes for rough thinking, decisions, links, and project context.</p>
+                </div>
+              ` : `
+                <ul class="note-list">
+                  ${[...project.notes].reverse().map((note) => `
+                    <li class="note-item">
+                      <p class="note-content">${escapeHtml(note.body)}</p>
+                      <div class="note-meta">
+                        <span>🕒 ${formatDate(note.createdAt)}</span>
+                        <button class="button ghost small" type="button" data-action="delete-note" data-project-id="${project.id}" data-note-id="${note.id}">🗑️ Delete</button>
+                      </div>
+                    </li>
+                  `).join("")}
+                </ul>
+              `}
+            </section>
+          </section>
+        `;
+      };
+
+      const bytesToBase64 = (bytes) => {
+        let binary = "";
+        bytes.forEach((byte) => binary += String.fromCharCode(byte));
+        return btoa(binary);
+      };
+
+      const encryptLocalSecret = async (plainText, passphrase) => {
+        if (!plainText || !passphrase) return null;
+        if (!window.crypto?.subtle) {
+          throw new Error("Browser crypto is not available.");
+        }
+
+        const encoder = new TextEncoder();
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const baseKey = await window.crypto.subtle.importKey(
+          "raw",
+          encoder.encode(passphrase),
+          "PBKDF2",
+          false,
+          ["deriveKey"]
+        );
+
+        const key = await window.crypto.subtle.deriveKey(
+          { name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" },
+          baseKey,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["encrypt"]
+        );
+
+        const encrypted = await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          key,
+          encoder.encode(plainText)
+        );
+
+        return {
+          alg: "AES-GCM",
+          kdf: "PBKDF2-SHA256",
+          iterations: 150000,
+          salt: bytesToBase64(salt),
+          iv: bytesToBase64(iv),
+          ciphertext: bytesToBase64(new Uint8Array(encrypted)),
+          updatedAt: now()
+        };
+      };
+
+      const syncPlannerIntegrationFromModule = (project) => {
+        const plannerModule = project.modules?.planner;
+        if (!plannerModule) return;
+        const settings = plannerModule.settings || {};
+        project.integrations = normalizeIntegrations({
+          ...project.integrations,
+          planner: {
+            planName: settings.externalName,
+            planUrl: settings.externalUrl,
+            planId: settings.externalId,
+            backendSystem: settings.backendSystem,
+            accountType: settings.accountType,
+            syncMode: settings.syncMode,
+            lastSync: project.integrations?.planner?.lastSync || ""
+          }
+        });
+      };
+
+      const renderModuleSettings = (project, module) => {
+        const record = project.modules?.[module.id] || normalizeModules({}, project.integrations)[module.id];
+        const settings = record.settings || {};
+        const secretSaved = Boolean(record.secretVault);
+        const configured = Boolean(record.configured);
+        const plannerProfile = module.id === "planner"
+          ? plannerBackendProfiles[settings.backendSystem] || plannerBackendProfiles["microsoft-planner"]
+          : null;
+
+        const nameLabel = plannerProfile?.resourceNameLabel || "Display name";
+        const namePlaceholder = plannerProfile?.resourceNamePlaceholder || "Name in the external system";
+        const urlLabel = plannerProfile?.resourceUrlLabel || "Resource URL";
+        const urlPlaceholder = plannerProfile?.resourceUrlPlaceholder || "Paste admin/resource URL";
+        const idLabel = plannerProfile?.resourceIdLabel || "Resource ID";
+        const idPlaceholder = plannerProfile?.resourceIdPlaceholder || "Optional external ID";
+        const credentialLabel = plannerProfile?.credentialLabel || "Local API key / token";
+        const credentialPlaceholder = plannerProfile?.credentialPlaceholder || "Paste API key for local testing";
+
+        const commonFields = `
+          <div class="field">
+            <label for="${module.id}ExternalName">${escapeHtml(nameLabel)}</label>
+            <input id="${module.id}ExternalName" class="input" name="externalName" type="text" maxlength="140" value="${escapeHtml(settings.externalName || "")}" placeholder="${escapeHtml(namePlaceholder)}" />
+          </div>
+          <div class="field">
+            <label for="${module.id}ExternalUrl">${escapeHtml(urlLabel)}</label>
+            <input id="${module.id}ExternalUrl" class="input" name="externalUrl" type="url" value="${escapeHtml(settings.externalUrl || "")}" placeholder="${escapeHtml(urlPlaceholder)}" />
+          </div>
+          <div class="field">
+            <label for="${module.id}ExternalId">${escapeHtml(idLabel)}</label>
+            <input id="${module.id}ExternalId" class="input" name="externalId" type="text" maxlength="180" value="${escapeHtml(settings.externalId || "")}" placeholder="${escapeHtml(idPlaceholder)}" />
+          </div>
+        `;
+
+        const plannerFields = module.id === "planner" ? `
+          <div class="field">
+            <label for="plannerBackendSystem">Backend planner system</label>
+            <select id="plannerBackendSystem" class="select" name="backendSystem" data-action="change-planner-backend" data-project-id="${project.id}">
+              ${Object.entries(plannerBackendLabels).map(([value, label]) => `<option value="${value}" ${settings.backendSystem === value ? "selected" : ""}>${label}</option>`).join("")}
+            </select>
+          </div>
+          <p class="module-secret-note">${escapeHtml(plannerProfile.help)}</p>
+          ${settings.backendSystem === "microsoft-planner" ? `
+            <div class="field">
+              <label for="plannerAccountType">Microsoft Planner account type</label>
+              <select id="plannerAccountType" class="select" name="accountType">
+                ${Object.entries(plannerAccountLabels).map(([value, label]) => `<option value="${value}" ${settings.accountType === value ? "selected" : ""}>${label}</option>`).join("")}
+              </select>
+            </div>
+          ` : ""}
+          <div class="field">
+            <label for="plannerSyncMode">Sync direction</label>
+            <select id="plannerSyncMode" class="select" name="syncMode">
+              <option value="manual" ${settings.syncMode === "manual" ? "selected" : ""}>Manual sync checkpoint</option>
+              <option value="backend-to-dashboard" ${settings.syncMode === "backend-to-dashboard" ? "selected" : ""}>Backend to OurDashboard</option>
+              <option value="dashboard-to-backend" ${settings.syncMode === "dashboard-to-backend" ? "selected" : ""}>OurDashboard to backend</option>
+              <option value="two-way" ${settings.syncMode === "two-way" ? "selected" : ""}>Two-way sync</option>
+            </select>
+          </div>
+        ` : "";
+
+        const calendarFields = module.id === "calendar" ? `
+          <div class="field">
+            <label for="calendarBackendSystem">Calendar backend</label>
+            <select id="calendarBackendSystem" class="select" name="backendSystem">
+              ${Object.entries(calendarBackendLabels).map(([value, label]) => `<option value="${value}" ${settings.backendSystem === value ? "selected" : ""}>${label}</option>`).join("")}
+            </select>
+          </div>
+        ` : "";
+
+        return `
+          <form class="module-settings" data-action="save-module-settings" data-project-id="${project.id}" data-module-id="${module.id}">
+            ${plannerFields}
+            ${calendarFields}
+            ${commonFields}
+
+            <div class="field">
+              <label for="${module.id}ApiKey">${escapeHtml(credentialLabel)}</label>
+              <input id="${module.id}ApiKey" class="input" name="apiKey" type="password" autocomplete="off" placeholder="${secretSaved ? "Encrypted key saved. Enter a new key to replace it." : escapeHtml(credentialPlaceholder)}" />
+            </div>
+
+            <div class="field">
+              <label for="${module.id}Passphrase">Local encryption passphrase</label>
+              <input id="${module.id}Passphrase" class="input" name="passphrase" type="password" autocomplete="off" placeholder="Required only when saving a new key" />
+            </div>
+
+            <p class="module-secret-note">${secretSaved ? "🔐 API key is encrypted locally in this browser." : "No API key saved. For testing only; move secrets to a backend vault later."}</p>
+
+            <div class="module-actions">
+              <button class="button secondary small" type="submit">💾 Save settings</button>
+              <button class="button primary small" type="button" data-action="confirm-module" data-project-id="${project.id}" data-module-id="${module.id}">✅ Confirm working</button>
+              ${configured ? `<button class="button ghost small" type="button" data-action="open-module" data-project-id="${project.id}" data-module-id="${module.id}">Open dashboard</button>` : ""}
+            </div>
+          </form>
+        `;
+      };
+
+      const renderNewModuleInstaller = (project) => {
+        const sample = `{
+  "id": "vendor-health",
+  "icon": "🧰",
+  "name": "Vendor Health",
+  "desc": "Track vendor status, support links, renewals, and admin references.",
+  "visibleData": "Vendors, portals, contracts, renewals, owners, support status.",
+  "controlledActions": "Attach selected vendor records, update status, and link support cases."
+}`;
+
+        return `
+          <form class="module-installer" data-action="install-custom-module" data-project-id="${project.id}">
+            <div>
+              <h3>➕ New module</h3>
+              <p class="module-caption">Paste a simple moduleizer JSON object. ChatGPT can generate this object for a new module, and OurDashboard will install it locally.</p>
+            </div>
+
+            <div class="field">
+              <label for="newModuleCode">Moduleizer JSON</label>
+              <textarea id="newModuleCode" class="textarea code-textarea" name="moduleCode" spellcheck="false" placeholder="${escapeHtml(sample)}"></textarea>
+            </div>
+
+            <div class="module-actions">
+              <button class="button primary small" type="submit">Install module</button>
+              <button class="button secondary small" type="button" data-action="switch-modules-mode" data-modules-mode="list">Back to modules</button>
+            </div>
+          </form>
+        `;
+      };
+
+      const renderModulesPopover = (project) => {
+        const modules = getModuleDefinitions();
+
+        return `
+          <div class="modules-popover" role="menu" aria-label="Project module selector">
+            <div class="modules-popover-head">
+              <div>
+                <h3>🧩 Modules</h3>
+                <p>Enable or disable project modules. Enabled modules appear in the project nav.</p>
+              </div>
+              <button class="button ghost small" type="button" data-action="close-modules" aria-label="Close modules selector">✕</button>
+            </div>
+            <ul class="module-selector-list">
+              ${modules.map((module) => {
+                const record = project.modules?.[module.id] || normalizeModules({}, project.integrations)[module.id];
+                const enabled = Boolean(record.enabled);
+                return `
+                  <li class="module-selector-item">
+                    <input
+                      class="module-toggle"
+                      type="checkbox"
+                      ${enabled ? "checked" : ""}
+                      data-action="toggle-module"
+                      data-project-id="${project.id}"
+                      data-module-id="${module.id}"
+                      aria-label="Toggle ${escapeHtml(module.name)} module"
+                    />
+                    <div class="module-selector-main">
+                      <div class="module-selector-title">
+                        <span class="module-link" aria-disabled="true">${module.icon} ${module.name}</span>
+                        <span class="module-state">${enabled ? "On" : "Off"}</span>
+                      </div>
+                      <p class="module-caption">${escapeHtml(module.desc)}</p>
+                    </div>
+                  </li>
+                `;
+              }).join("")}
+            </ul>
+          </div>
+        `;
+      };
+
+      const renderPlannerModulePanel = (project, module) => {
+        const plannerRecord = project.modules?.planner || normalizeModules({}, project.integrations).planner;
+        const settings = plannerRecord.settings || {};
+        const planner = normalizeIntegrations(project.integrations).planner;
+        const linked = Boolean(plannerRecord.configured);
+
+        return `
+          <section id="panel-module-planner" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-planner">
+            <section class="integration-panel" aria-labelledby="plannerModuleHeading">
+              <div>
+                <h3 id="plannerModuleHeading">📋 Planner</h3>
+                <p>This module maps OurDashboard projects, phases, and tasks into an external planning backend.</p>
+              </div>
+
+              <div class="integration-status">
+                <span class="badge ${linked ? "active" : "paused"}">${linked ? "🟢 Confirmed working" : "⚪ Needs setup"}</span>
+                <span class="badge">🧱 ${plannerBackendLabels[settings.backendSystem] || "Planner backend"}</span>
+                <span class="badge">🔁 ${settings.syncMode === "two-way" ? "Two-way sync" : settings.syncMode === "backend-to-dashboard" ? "Backend to OurDashboard" : settings.syncMode === "dashboard-to-backend" ? "OurDashboard to backend" : "Manual sync"}</span>
+                <span class="badge">🕒 ${planner.lastSync ? `Last checked ${formatDate(planner.lastSync)}` : "Never checked"}</span>
+              </div>
+
+              <div class="metadata-row">
+                <span>📌 ${escapeHtml(settings.externalName || "No external plan name")}</span>
+                <span>🆔 ${escapeHtml(settings.externalId || "No external ID")}</span>
+                <span>🔐 ${plannerRecord.secretVault ? "API key encrypted locally" : "No local key saved"}</span>
+              </div>
+
+              <div class="detail-actions">
+                <button class="button secondary" type="button" data-action="open-modules" data-project-id="${project.id}">⚙️ Configure module</button>
+                <button class="button secondary" type="button" data-action="mark-planner-sync" data-project-id="${project.id}">🔁 Mark sync check</button>
+              </div>
+            </section>
+
+            <section class="console-empty">
+              <h3>Structured mapping preview</h3>
+              <p>Layer 2 will show backend plans, boards, buckets, and tasks. Layer 3 will convert OurDashboard phases and tasks into selected backend records.</p>
+            </section>
+          </section>
+        `;
+      };
+
+      const renderComingSoonModulePanel = (project, module) => {
+        return `
+          <section id="panel-module-${module.id}" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-${module.id}">
+            <section class="console-empty">
+              <h3>${module.icon} ${module.name} dashboard coming soon</h3>
+              <p>${escapeHtml(module.desc)}</p>
+            </section>
+
+            <section class="integration-panel">
+              <div>
+                <h3>Layer 2 visibility</h3>
+                <p>${escapeHtml(module.visibleData)}</p>
+              </div>
+              <div>
+                <h3>Layer 3 selected actions</h3>
+                <p>${escapeHtml(module.controlledActions)}</p>
+              </div>
+            </section>
+          </section>
+        `;
+      };
+
+      const renderModulePanel = (project, moduleId) => {
+        const module = getModuleDefinitions().find((item) => item.id === moduleId);
+        if (!module || !project.modules?.[module.id]?.enabled) {
+          state.projectTab = "overview";
+          return renderOverviewPanel(project);
+        }
+        return renderComingSoonModulePanel(project, module);
+      };
+
+      const renderAccessPanel = (project) => {
+        const access = normalizeAccess(project.access, "project");
+
+        return `
+          <section id="panel-access" class="tab-panel" role="tabpanel" aria-labelledby="tab-access">
+            <section class="section" aria-labelledby="projectAccessHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="projectAccessHeading">🔐 Project access</h3>
+                  <p class="section-subtle">Least-privilege structure starts here: app access, project access, phase access, then task assignment.</p>
+                </div>
+              </div>
+
+              <form class="form-grid" data-action="save-project-access" data-project-id="${project.id}">
+                <div class="field">
+                  <label for="projectVisibility">Project visibility</label>
+                  <select id="projectVisibility" class="select" name="visibility">
+                    <option value="private" ${access.visibility === "private" ? "selected" : ""}>Private</option>
+                    <option value="project" ${access.visibility === "project" ? "selected" : ""}>Project members</option>
+                    <option value="assigned" ${access.visibility === "assigned" ? "selected" : ""}>Assigned users only</option>
+                    <option value="public" ${access.visibility === "public" ? "selected" : ""}>Visible to dashboard users</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="projectOwners">Project owners</label>
+                  <input id="projectOwners" class="input" name="owners" type="text" value="${escapeHtml(access.owners)}" placeholder="Names or emails, comma-separated" />
+                </div>
+                <div class="field full">
+                  <label for="projectMembers">Project members</label>
+                  <input id="projectMembers" class="input" name="members" type="text" value="${escapeHtml(access.members)}" placeholder="Names or emails, comma-separated" />
+                </div>
+                <div class="field full">
+                  <button class="button primary" type="submit">💾 Save project access</button>
+                  <span class="save-state" role="status">${escapeHtml(state.saveStatus)}</span>
+                </div>
+              </form>
+            </section>
+
+            <section class="section" aria-labelledby="phaseAccessHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="phaseAccessHeading">🧩 Phase access</h3>
+                  <p class="section-subtle">Phases can inherit project visibility or be narrowed further.</p>
+                </div>
+              </div>
+
+              ${project.phases.length === 0 ? `
+                <div class="console-empty">
+                  <h3>No phases yet</h3>
+                  <p>Add phases before assigning phase-level visibility.</p>
+                </div>
+              ` : `
+                <div class="access-grid">
+                  ${project.phases.map((phase) => {
+                    const phaseAccess = normalizeAccess(phase.access, "project");
+                    return `
+                      <form class="access-row" data-action="save-phase-access" data-project-id="${project.id}" data-phase-id="${phase.id}">
+                        <div>
+                          <strong>${escapeHtml(phase.name)}</strong>
+                          <span>Visibility controls for this project phase.</span>
+                        </div>
+                        <div class="field">
+                          <label class="sr-only" for="phaseVisibility-${phase.id}">Phase visibility</label>
+                          <select id="phaseVisibility-${phase.id}" class="select" name="visibility">
+                            <option value="project" ${phaseAccess.visibility === "project" ? "selected" : ""}>Project members</option>
+                            <option value="assigned" ${phaseAccess.visibility === "assigned" ? "selected" : ""}>Assigned only</option>
+                            <option value="private" ${phaseAccess.visibility === "private" ? "selected" : ""}>Owners only</option>
+                          </select>
+                          <label class="sr-only" for="phaseAssignee-${phase.id}">Phase owner</label>
+                          <input id="phaseAssignee-${phase.id}" class="input" name="assignee" type="text" value="${escapeHtml(phaseAccess.assignee)}" placeholder="Phase owner" />
+                          <button class="button secondary small" type="submit">Save</button>
+                        </div>
+                      </form>
+                    `;
+                  }).join("")}
+                </div>
+              `}
+            </section>
+
+            <section class="section" aria-labelledby="taskAccessHeading">
+              <div class="section-head">
+                <div>
+                  <h3 id="taskAccessHeading">☑️ Task assignment</h3>
+                  <p class="section-subtle">Task assignment is the narrowest layer. Keep this scoped to the people doing the work.</p>
+                </div>
+              </div>
+
+              ${project.tasks.length === 0 ? `
+                <div class="console-empty">
+                  <h3>No tasks yet</h3>
+                  <p>Add tasks before assigning task visibility or owners.</p>
+                </div>
+              ` : `
+                <div class="access-grid">
+                  ${project.tasks.map((task) => {
+                    const taskAccess = normalizeAccess(task.access, "phase");
+                    return `
+                      <form class="access-row" data-action="save-task-access" data-project-id="${project.id}" data-task-id="${task.id}">
+                        <div>
+                          <strong>${escapeHtml(task.title)}</strong>
+                          <span>Phase: ${escapeHtml(phaseLabel(project, task.phaseId))}</span>
+                        </div>
+                        <div class="field">
+                          <label class="sr-only" for="taskVisibility-${task.id}">Task visibility</label>
+                          <select id="taskVisibility-${task.id}" class="select" name="visibility">
+                            <option value="phase" ${taskAccess.visibility === "phase" ? "selected" : ""}>Phase members</option>
+                            <option value="assigned" ${taskAccess.visibility === "assigned" ? "selected" : ""}>Assigned only</option>
+                            <option value="project" ${taskAccess.visibility === "project" ? "selected" : ""}>Project members</option>
+                          </select>
+                          <label class="sr-only" for="taskAssignee-${task.id}">Task assignee</label>
+                          <input id="taskAssignee-${task.id}" class="input" name="assignee" type="text" value="${escapeHtml(taskAccess.assignee)}" placeholder="Task assignee" />
+                          <button class="button secondary small" type="submit">Save</button>
+                        </div>
+                      </form>
+                    `;
+                  }).join("")}
+                </div>
+              `}
+            </section>
+          </section>
+        `;
+      };
+
+      const renderActiveProjectPanel = (project) => {
+        if (state.projectTab.startsWith("module:")) return renderModulePanel(project, state.projectTab.slice("module:".length));
+        if (state.projectTab === "phases") return renderPhasesPanel(project);
+        if (state.projectTab === "tasks") return renderTasksPanel(project);
+        if (state.projectTab === "access") return renderAccessPanel(project);
+        if (state.projectTab === "notes") return renderNotesPanel(project);
+        return renderOverviewPanel(project);
+      };
+
+      const renderProjectConsole = () => {
+        const project = getSelectedProject();
+
+        if (!project) {
+          renderAllProjectsTable();
+          return;
+        }
+
+        els.workspacePanel.innerHTML = `
+          <div class="detail-header">
+            <div class="detail-title">
+              <div class="detail-heading-line">
+                ${renderProjectEmojiControl(project)}
+                <h2 id="workspaceHeading">${escapeHtml(project.name)}</h2>
+              </div>
+              <p>${statusIcons[project.status]} ${statusLabels[project.status]} · ${stageIcons[project.stage]} ${stageLabels[project.stage]}${project.modules?.planner?.enabled ? " · 📋 Planner on" : ""}</p>
+            </div>
+            <div class="detail-actions">
+              <span class="modules-anchor">
+                <button class="button secondary" type="button" data-action="open-modules" data-project-id="${project.id}" aria-expanded="${state.modulesOpen}">🧩 Modules</button>
+                ${state.modulesOpen ? renderModulesPopover(project) : ""}
+              </span>
+              <button class="button secondary" type="button" data-action="export-project" data-project-id="${project.id}">⬇️ Export</button>
+              <button class="button danger" type="button" data-action="delete-project" data-project-id="${project.id}">🗑️ Delete</button>
+            </div>
+          </div>
+
+          ${renderProjectNav(project)}
+
+          <div class="detail-body">
+            ${renderActiveProjectPanel(project)}
+          </div>
+        `;
+      };
+
+      const openProjectDialog = () => {
+        els.projectForm.reset();
+        els.createProjectButton.disabled = true;
+        els.projectDialog.showModal();
+        window.requestAnimationFrame(() => els.newProjectName.focus());
+      };
+
+      const closeProjectDialog = () => {
+        els.projectDialog.close();
+        els.openProjectDialogButton.focus();
+      };
+
+      const createProject = (formData) => {
+        const name = String(formData.get("name") || "").trim();
+        if (!name) return;
+
+        const rawStage = String(formData.get("stage") || "planning");
+        const stage = rawStage === "execution" ? "production" : rawStage;
+        const firstPhase = makePhaseFromStage(stage, "active");
+
+        const project = normalizeProject({
+          name,
+          status: formData.get("status"),
+          stage,
+          goal: formData.get("goal"),
+          nextAction: formData.get("nextAction"),
+          phases: [firstPhase],
+          tasks: [],
+          notes: [],
+          integrations: normalizeIntegrations({}),
+          modules: normalizeModules({}),
+          createdAt: now(),
+          updatedAt: now()
+        });
+
+        state.projects.unshift(project);
+        state.selectedId = project.id;
+        state.workspace = "project";
+        state.projectTab = "overview";
+        state.filter = "all";
+        state.search = "";
+        els.searchInput.value = "";
+        persist("Project created");
+        els.projectDialog.close();
+      };
+
+      const exportData = (data, filename) => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      };
+
+      const handleImport = async (file) => {
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          const incoming = Array.isArray(parsed.projects)
+            ? parsed.projects
+            : Array.isArray(parsed)
+              ? parsed
+              : null;
+
+          if (!incoming) throw new Error("Invalid file");
+
+          const normalized = incoming.map(normalizeProject).filter((project) => project.name);
+          state.projects = normalized;
+          state.selectedId = normalized[0]?.id || null;
+          state.appSettings = normalizeAppSettings(parsed.appSettings);
+          state.workspace = state.selectedId ? "project" : "table";
+          persist("Imported");
+        } catch (error) {
+          showStorageError("Import failed. Use a JSON export created by this dashboard.");
+        } finally {
+          els.importFile.value = "";
+        }
+      };
+
+      const setupResizeRail = () => {
+        if (!els.resizeRail) return;
+
+        let startX = 0;
+        let startWidth = sidebarDefault;
+        let lastTapTime = 0;
+        let pointerMoved = false;
+
+        const getCurrentWidth = () => {
+          const computed = getComputedStyle(document.documentElement).getPropertyValue("--project-sidebar-width");
+          return clampSidebarWidth(computed);
+        };
+
+        const onPointerMove = (event) => {
+          const delta = event.clientX - startX;
+          if (Math.abs(delta) > 4) pointerMoved = true;
+          setSidebarWidth(startWidth + delta);
+        };
+
+        const stopResize = () => {
+          document.body.classList.remove("is-resizing");
+          window.removeEventListener("pointermove", onPointerMove);
+          window.removeEventListener("pointerup", stopResize);
+          window.removeEventListener("pointercancel", stopResize);
+        };
+
+        els.resizeRail.addEventListener("pointerdown", (event) => {
+          if (window.matchMedia("(max-width: 980px)").matches) return;
+
+          const nowTime = Date.now();
+          const isDoubleTap = nowTime - lastTapTime < 320;
+          lastTapTime = nowTime;
+
+          if (isDoubleTap) {
+            event.preventDefault();
+            toggleSidebarCollapsed();
+            return;
+          }
+
+          pointerMoved = false;
+          startX = event.clientX;
+          startWidth = getCurrentWidth();
+          document.body.classList.add("is-resizing");
+          els.resizeRail.setPointerCapture?.(event.pointerId);
+          window.addEventListener("pointermove", onPointerMove);
+          window.addEventListener("pointerup", stopResize, { once: true });
+          window.addEventListener("pointercancel", stopResize, { once: true });
+        });
+
+        els.resizeRail.addEventListener("dblclick", (event) => {
+          event.preventDefault();
+          toggleSidebarCollapsed();
+        });
+
+        els.resizeRail.addEventListener("keydown", (event) => {
+          const current = getCurrentWidth();
+          const step = event.shiftKey ? 40 : 16;
+
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleSidebarCollapsed();
+          }
+
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            setSidebarWidth(current - step);
+          }
+
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            setSidebarWidth(current + step);
+          }
+
+          if (event.key === "Home") {
+            event.preventDefault();
+            setSidebarWidth(sidebarMin);
+          }
+
+          if (event.key === "End") {
+            event.preventDefault();
+            setSidebarWidth(sidebarMax);
+          }
+        });
+      };
+
+      document.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-action], [data-project-id]");
+        if (!target) return;
+
+        const action = target.dataset.action;
+
+        if (target.classList.contains("project-row")) {
+          state.selectedId = target.dataset.projectId;
+          state.workspace = "project";
+          state.emojiPickerProjectId = null;
+          state.emojiPickerProjectId = null;
+          state.modulesOpen = false;
+          state.saveStatus = "";
+          persist("Selected");
+          return;
+        }
+
+        if (action === "open-project") {
+          state.selectedId = target.dataset.projectId;
+          state.workspace = "project";
+          state.modulesOpen = false;
+          state.saveStatus = "";
+          persist("Selected");
+          return;
+        }
+
+        if (action === "toggle-emoji-picker") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          state.emojiPickerProjectId = state.emojiPickerProjectId === project.id ? null : project.id;
+          state.emojiSearch = project.name || "";
+          renderWorkspace();
+          return;
+        }
+
+        if (action === "select-project-emoji") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.icon = target.dataset.emoji || suggestProjectEmoji(project);
+          project.updatedAt = now();
+          state.emojiPickerProjectId = null;
+          state.emojiSearch = "";
+          persist("Project emoji updated");
+          return;
+        }
+
+        if (action === "open-project-dialog") {
+          openProjectDialog();
+          return;
+        }
+
+        if (action === "clear-filters") {
+          state.filter = "all";
+          state.search = "";
+          els.searchInput.value = "";
+          render();
+          return;
+        }
+
+        if (action === "switch-project-tab") {
+          state.projectTab = target.dataset.tab || "overview";
+          state.saveStatus = "";
+          renderWorkspace();
+          return;
+        }
+
+        if (action === "open-modules") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          state.modulesOpen = !state.modulesOpen;
+          if (state.modulesOpen) {
+            state.modulesMode = "list";
+            state.modulesPopoverScrollTop = 0;
+          }
+          renderWorkspace();
+          return;
+        }
+
+        if (action === "close-modules") {
+          state.modulesOpen = false;
+          renderWorkspace();
+          return;
+        }
+
+        if (action === "open-module") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          const moduleId = target.dataset.moduleId;
+          if (!project || !project.modules?.[moduleId]?.enabled) return;
+          state.projectTab = `module:${moduleId}`;
+          state.modulesOpen = false;
+          state.workspace = "project";
+          renderWorkspace();
+          return;
+        }
+
+        if (action === "mark-planner-sync") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.integrations = normalizeIntegrations(project.integrations);
+          project.integrations.planner.lastSync = now();
+          project.updatedAt = now();
+          persist("Planner sync checked");
+          return;
+        }
+
+        if (action === "clear-planner-link") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.integrations = normalizeIntegrations({});
+          project.modules = normalizeModules(project.modules, project.integrations);
+          project.modules.planner.enabled = true;
+          project.modules.planner.configured = false;
+          project.modules.planner.settings = defaultModuleSettings("planner", {}, project.integrations);
+          project.updatedAt = now();
+          persist("Planner link cleared");
+          return;
+        }
+
+        if (action === "delete-project") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          const ok = window.confirm(`Delete "${project.name}"? This cannot be undone.`);
+          if (!ok) return;
+
+          state.projects = state.projects.filter((item) => item.id !== project.id);
+          state.selectedId = state.projects[0]?.id || null;
+          state.workspace = state.projects.length ? "project" : "table";
+          persist("Project deleted");
+          return;
+        }
+
+        if (action === "add-standard-phases") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+
+          standardPhaseIds.forEach((key) => {
+            const alreadyExists = project.phases.some((phase) => phase.key === key || phase.name.toLowerCase() === stageLabels[key].toLowerCase());
+            if (!alreadyExists) {
+              project.phases.push({
+                id: uid(),
+                key,
+                name: stageLabels[key],
+                status: key === project.stage ? "active" : "planned",
+                description: "",
+                createdAt: now()
+              });
+            }
+          });
+
+          project.updatedAt = now();
+          persist("Standard phases added");
+          return;
+        }
+
+        if (action === "delete-phase") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+
+          const phaseId = target.dataset.phaseId;
+          const attachedTasks = project.tasks.filter((task) => task.phaseId === phaseId).length;
+          const ok = attachedTasks > 0
+            ? window.confirm(`Delete this phase and ${attachedTasks} attached task${attachedTasks === 1 ? "" : "s"}?`)
+            : window.confirm("Delete this phase?");
+          if (!ok) return;
+
+          project.phases = project.phases.filter((phase) => phase.id !== phaseId);
+          project.tasks = project.tasks.filter((task) => task.phaseId !== phaseId);
+          project.updatedAt = now();
+          persist("Phase deleted");
+          return;
+        }
+
+        if (action === "toggle-task") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          const task = project?.tasks.find((item) => item.id === target.dataset.taskId);
+          if (!project || !task) return;
+          task.done = target.checked;
+          project.updatedAt = now();
+          persist(task.done ? "Task completed" : "Task reopened");
+          return;
+        }
+
+        if (action === "delete-task") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.tasks = project.tasks.filter((task) => task.id !== target.dataset.taskId);
+          project.updatedAt = now();
+          persist("Task deleted");
+          return;
+        }
+
+        if (action === "delete-note") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.notes = project.notes.filter((note) => note.id !== target.dataset.noteId);
+          project.updatedAt = now();
+          persist("Note deleted");
+          return;
+        }
+
+        if (action === "export-project") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          exportData({ projects: [project], version: 1 }, `${project.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "project"}.json`);
+        }
+      });
+
+      document.addEventListener("change", (event) => {
+        const target = event.target.closest("[data-action]");
+        if (!target) return;
+
+        if (target.dataset.action === "change-planner-backend") {
+          captureModulesScroll();
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+
+          const form = target.closest("form");
+          const formData = form ? new FormData(form) : new FormData();
+          project.modules = normalizeModules(project.modules, project.integrations);
+
+          const record = project.modules.planner;
+          record.enabled = true;
+          record.settings = defaultModuleSettings("planner", {
+            ...(record.settings || {}),
+            backendSystem: target.value,
+            accountType: formData.get("accountType"),
+            externalName: formData.get("externalName"),
+            externalUrl: formData.get("externalUrl"),
+            externalId: formData.get("externalId"),
+            syncMode: formData.get("syncMode")
+          }, project.integrations);
+
+          syncPlannerIntegrationFromModule(project);
+          project.updatedAt = now();
+          state.openModuleSettings = "planner";
+          persist("Planner backend updated");
+          return;
+        }
+
+        if (target.dataset.action === "toggle-module") {
+          captureModulesScroll();
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          const moduleId = target.dataset.moduleId;
+          if (!project || !getModuleDefinitions().some((module) => module.id === moduleId)) return;
+          project.modules = normalizeModules(project.modules, project.integrations);
+          project.modules[moduleId].enabled = target.checked;
+          project.modules[moduleId].configured = false;
+          if (!target.checked && state.projectTab === `module:${moduleId}`) {
+            state.projectTab = "overview";
+          }
+          project.updatedAt = now();
+          persist(target.checked ? "Module enabled" : "Module disabled");
+          return;
+        }
+
+        if (target.dataset.action === "change-phase-status") {
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          const phase = project?.phases.find((item) => item.id === target.dataset.phaseId);
+          if (!project || !phase) return;
+          phase.status = phaseStatusLabels[target.value] ? target.value : "planned";
+          project.updatedAt = now();
+          persist("Phase updated");
+        }
+      });
+
+      document.addEventListener("submit", async (event) => {
+        const form = event.target;
+        const action = form.dataset.action;
+
+        if (form === els.projectForm) {
+          event.preventDefault();
+          createProject(new FormData(form));
+          return;
+        }
+
+        if (action === "edit-project") {
+          event.preventDefault();
+          const formData = new FormData(form);
+          const name = String(formData.get("name") || "").trim();
+          if (!name) return;
+
+          updateProject(form.dataset.projectId, {
+            name,
+            status: formData.get("status"),
+            stage: formData.get("stage"),
+            goal: String(formData.get("goal") || "").trim(),
+            nextAction: String(formData.get("nextAction") || "").trim()
+          });
+          return;
+        }
+
+        if (action === "add-phase") {
+          event.preventDefault();
+          const project = state.projects.find((item) => item.id === form.dataset.projectId);
+          const formData = new FormData(form);
+          const name = String(formData.get("name") || "").trim();
+          if (!project || !name) return;
+
+          project.phases.push({
+            id: uid(),
+            key: "",
+            name,
+            status: phaseStatusLabels[formData.get("status")] ? formData.get("status") : "planned",
+            description: "",
+            createdAt: now()
+          });
+          project.updatedAt = now();
+          persist("Phase added");
+          return;
+        }
+
+        if (action === "add-task") {
+          event.preventDefault();
+          const formData = new FormData(form);
+          const title = String(formData.get("title") || "").trim();
+          if (!title) return;
+
+          const project = state.projects.find((item) => item.id === form.dataset.projectId);
+          if (!project) return;
+
+          const phaseId = form.dataset.phaseId || String(formData.get("phaseId") || "") || project.phases[0]?.id || "";
+          if (!phaseId) {
+            state.projectTab = "phases";
+            renderWorkspace();
+            return;
+          }
+
+          project.tasks.unshift({ id: uid(), phaseId, title, done: false, createdAt: now() });
+          project.updatedAt = now();
+          persist("Task added");
+          return;
+        }
+
+        if (action === "add-note") {
+          event.preventDefault();
+          const formData = new FormData(form);
+          const body = String(formData.get("body") || "").trim();
+          if (!body) return;
+
+          const project = state.projects.find((item) => item.id === form.dataset.projectId);
+          if (!project) return;
+
+          project.notes.push({ id: uid(), body, createdAt: now() });
+          project.updatedAt = now();
+          persist("Note added");
+        }
+      });
+
+      els.filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          state.filter = button.dataset.filter;
+          render();
+        });
+      });
+
+      els.searchInput.addEventListener("input", (event) => {
+        state.search = event.target.value;
+        render();
+      });
+
+      document.addEventListener("input", (event) => {
+        const target = event.target.closest?.("[data-action='emoji-search']");
+        if (!target) return;
+        state.emojiSearch = target.value;
+        renderWorkspace();
+        window.requestAnimationFrame(() => {
+          const input = document.querySelector("[data-action='emoji-search']");
+          input?.focus();
+          if (input) input.selectionStart = input.selectionEnd = input.value.length;
+        });
+      });
+
+      els.allProjectsButton.addEventListener("click", () => {
+        state.workspace = "table";
+        state.modulesOpen = false;
+        render();
+      });
+
+      els.openProjectDialogButton.addEventListener("click", openProjectDialog);
+      els.closeDialogButton.addEventListener("click", closeProjectDialog);
+      els.cancelProjectButton.addEventListener("click", closeProjectDialog);
+
+      els.newProjectName.addEventListener("input", () => {
+        els.createProjectButton.disabled = els.newProjectName.value.trim().length === 0;
+      });
+
+      els.exportButton.addEventListener("click", () => {
+        exportData({ projects: state.projects, selectedId: state.selectedId, appSettings: state.appSettings, version: 1 }, "ourdashboard-export.json");
+      });
+
+      els.importButton.addEventListener("click", () => {
+        els.importFile.click();
+      });
+
+      els.importFile.addEventListener("change", (event) => {
+        handleImport(event.target.files[0]);
+      });
+
+      els.projectDialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeProjectDialog();
+      });
+
+      window.addEventListener("keydown", (event) => {
+        const isMac = navigator.platform.toLowerCase().includes("mac");
+        const modifier = isMac ? event.metaKey : event.ctrlKey;
+
+        if (modifier && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          els.searchInput.focus();
+        }
+
+        if (modifier && event.key.toLowerCase() === "n") {
+          event.preventDefault();
+          openProjectDialog();
+        }
+
+        const activeTab = event.target.closest?.(".tab-button");
+        if (activeTab && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+          event.preventDefault();
+          const tabs = [...document.querySelectorAll(".tab-button")];
+          const currentIndex = tabs.indexOf(activeTab);
+          const direction = event.key === "ArrowRight" ? 1 : -1;
+          const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+          tabs[nextIndex].click();
+          tabs[nextIndex].focus();
+        }
+      });
+
+      loadState();
+      loadLayout();
+      setupResizeRail();
+      render();
+      window.requestAnimationFrame(() => {
+        els.html.setAttribute("data-app-ready", "true");
+      });
+    })();
+  </script>
+</body>
+</html>
