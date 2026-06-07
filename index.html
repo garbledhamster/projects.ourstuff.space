@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OurDashboard</title>
-  <meta name="description" content="OurDashboard - a place to manage and admin your projects." />
+  <title>projects.ourstuff.space</title>
+  <meta name="description" content="projects.ourstuff.space - a place to manage and admin your projects." />
   <style>
     :root {
       color-scheme: light;
@@ -74,11 +74,16 @@
 
     * { box-sizing: border-box; }
 
-    html { min-height: 100%; background: var(--bg); }
+    html {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+    }
 
     body {
-      min-height: 100%;
+      height: 100%;
       margin: 0;
+      overflow: hidden;
       font-family: var(--font);
       color: var(--text);
       background: var(--bg);
@@ -103,7 +108,17 @@
       outline-offset: 2px;
     }
 
-    .app { min-height: 100vh; }
+    .app {
+      display: grid;
+      height: 100vh;
+      min-height: 0;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    @supports (height: 100dvh) {
+      .app { height: 100dvh; }
+    }
 
     .topbar {
       position: sticky;
@@ -174,8 +189,11 @@
       display: grid;
       width: min(1480px, 100%);
       grid-template-columns: minmax(260px, var(--project-sidebar-width)) 12px minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
       gap: var(--space-3);
       align-items: stretch;
+      min-height: 0;
+      overflow: hidden;
       margin: 0 auto;
       padding: var(--space-5) var(--space-6) var(--space-6);
     }
@@ -209,10 +227,7 @@
       font-size: 1.25rem;
     }
 
-    html[data-sidebar-collapsed="true"] .project-list {
-      min-height: 360px;
-      max-height: calc(100vh - 140px);
-    }
+    html[data-sidebar-collapsed="true"] .project-list { min-height: 0; }
 
     html[data-sidebar-collapsed="true"] .project-row {
       min-height: 56px;
@@ -242,9 +257,18 @@
 
     .panel {
       min-width: 0;
+      min-height: 0;
       border: 1px solid var(--border);
       background: var(--surface);
       box-shadow: var(--shadow);
+    }
+
+    .project-index {
+      display: grid;
+      height: 100%;
+      min-height: 0;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      overflow: hidden;
     }
 
     .panel-header {
@@ -340,10 +364,67 @@
       display: grid;
       grid-auto-rows: max-content;
       align-content: start;
-      max-height: calc(100vh - 235px);
-      min-height: 360px;
+      min-height: 0;
       overflow: auto;
       scroll-padding: var(--space-2);
+    }
+
+    .project-list,
+    .detail-body,
+    .table-body,
+    .table-wrap,
+    .dialog-body,
+    .modules-popover,
+    .emoji-grid {
+      contain: layout paint;
+      overscroll-behavior: contain;
+      scrollbar-color: color-mix(in srgb, var(--text-muted), transparent 60%) transparent;
+      scrollbar-width: thin;
+    }
+
+    .project-list::-webkit-scrollbar,
+    .detail-body::-webkit-scrollbar,
+    .table-body::-webkit-scrollbar,
+    .table-wrap::-webkit-scrollbar,
+    .dialog-body::-webkit-scrollbar,
+    .modules-popover::-webkit-scrollbar,
+    .emoji-grid::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    .project-list::-webkit-scrollbar-track,
+    .detail-body::-webkit-scrollbar-track,
+    .table-body::-webkit-scrollbar-track,
+    .table-wrap::-webkit-scrollbar-track,
+    .dialog-body::-webkit-scrollbar-track,
+    .modules-popover::-webkit-scrollbar-track,
+    .emoji-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .project-list::-webkit-scrollbar-thumb,
+    .detail-body::-webkit-scrollbar-thumb,
+    .table-body::-webkit-scrollbar-thumb,
+    .table-wrap::-webkit-scrollbar-thumb,
+    .dialog-body::-webkit-scrollbar-thumb,
+    .modules-popover::-webkit-scrollbar-thumb,
+    .emoji-grid::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--text-muted), transparent 58%);
+      background-clip: padding-box;
+    }
+
+    .project-list::-webkit-scrollbar-thumb:hover,
+    .detail-body::-webkit-scrollbar-thumb:hover,
+    .table-body::-webkit-scrollbar-thumb:hover,
+    .table-wrap::-webkit-scrollbar-thumb:hover,
+    .dialog-body::-webkit-scrollbar-thumb:hover,
+    .modules-popover::-webkit-scrollbar-thumb:hover,
+    .emoji-grid::-webkit-scrollbar-thumb:hover {
+      background: color-mix(in srgb, var(--accent), transparent 42%);
+      background-clip: padding-box;
     }
 
     .project-row {
@@ -647,7 +728,10 @@
     }
 
     .detail {
-      min-height: 620px;
+      display: grid;
+      min-height: 0;
+      height: 100%;
+      grid-template-rows: auto auto minmax(0, 1fr);
       overflow: hidden;
     }
 
@@ -849,7 +933,14 @@
     .table-body {
       display: grid;
       gap: var(--space-5);
+      min-height: 0;
+      overflow: auto;
       padding: var(--space-4);
+    }
+
+    .detail > .empty {
+      min-height: 0;
+      overflow: auto;
     }
 
     .tab-panel {
@@ -1231,6 +1322,7 @@
     }
 
     .table-wrap {
+      min-height: 0;
       overflow: auto;
       border: 1px solid var(--border);
       background: var(--surface);
@@ -1287,7 +1379,10 @@
     .divider { height: 1px; background: var(--border); }
 
     .dialog {
+      display: grid;
       width: min(620px, calc(100% - 2rem));
+      max-height: calc(100vh - var(--space-8));
+      grid-template-rows: auto minmax(0, 1fr) auto;
       padding: 0;
       border: 1px solid var(--border);
       color: var(--text);
@@ -1297,6 +1392,17 @@
 
     .dialog.modules-dialog {
       width: min(780px, calc(100% - 2rem));
+    }
+
+    .dialog:not([open]) {
+      display: none;
+    }
+
+    .dialog form {
+      display: grid;
+      max-height: inherit;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
     }
 
     .dialog::backdrop { background: rgba(10, 14, 20, 0.48); }
@@ -1327,6 +1433,8 @@
     .dialog-body {
       display: grid;
       gap: var(--space-4);
+      min-height: 0;
+      overflow: auto;
       padding: var(--space-4);
     }
 
@@ -1376,11 +1484,17 @@
       z-index: 30;
       display: grid;
       width: min(390px, calc(100vw - 2rem));
+      min-height: 0;
       max-height: min(560px, calc(100vh - 8rem));
       overflow: auto;
       border: 1px solid var(--border);
       background: var(--surface);
       box-shadow: var(--shadow);
+    }
+
+    @supports (max-height: 100dvh) {
+      .dialog { max-height: calc(100dvh - var(--space-8)); }
+      .modules-popover { max-height: min(560px, calc(100dvh - 8rem)); }
     }
 
     .modules-popover-head {
@@ -1448,28 +1562,60 @@
       gap: var(--space-2);
     }
 
-    .module-link {
-      display: inline-flex;
+    .module-title-text {
       min-width: 0;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0;
-      border: 0;
-      color: var(--accent);
-      background: transparent;
+      overflow: hidden;
+      color: var(--text);
       font-weight: 760;
       line-height: 1.25;
-      text-align: left;
-      text-decoration: underline;
-      text-underline-offset: 0.16em;
-      white-space: normal;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .module-link[disabled] {
+    .module-title-actions {
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+      gap: var(--space-1);
+    }
+
+    .module-settings-toggle {
+      appearance: none;
+      display: inline-grid;
+      width: 1.9rem;
+      height: 1.9rem;
+      flex: 0 0 auto;
+      place-items: center;
+      padding: 0;
+      border: 1px solid transparent;
+      color: var(--text-soft);
+      background: transparent;
+      font-size: 1rem;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .module-settings-glyph {
+      display: block;
+      width: 1em;
+      height: 1em;
+      font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
+      font-size: 1rem;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .module-settings-toggle:hover {
+      border-color: var(--border);
       color: var(--text);
-      text-decoration: none;
-      opacity: 1;
-      cursor: default;
+      background: var(--surface-2);
+    }
+
+    .module-settings-toggle[aria-expanded="true"] {
+      border-color: var(--border-strong);
+      color: var(--accent);
+      background: var(--accent-soft);
     }
 
     .module-state {
@@ -1493,9 +1639,108 @@
     }
 
     .module-settings .input,
-    .module-settings .select {
+    .module-settings .select,
+    .module-settings .textarea {
       min-height: 36px;
       font-size: 0.84rem;
+    }
+
+    .module-fieldset {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .module-fieldset legend {
+      padding: 0 0.25rem;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 780;
+    }
+
+    .module-field-grid,
+    .github-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+
+    .module-field-grid .field.full,
+    .github-metric-grid .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .related-repo-list,
+    .github-related-list,
+    .github-link-list {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .related-repo-item,
+    .github-related-card,
+    .github-stat-card {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .related-repo-head,
+    .github-card-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .github-dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr);
+      gap: var(--space-3);
+    }
+
+    .github-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+    }
+
+    .github-stat-card strong {
+      display: block;
+      font-size: 1.25rem;
+      line-height: 1.1;
+    }
+
+    .github-title-link {
+      color: var(--text);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.18em;
+    }
+
+    .github-title-link:hover {
+      color: var(--accent);
+    }
+
+    .github-stat-card span,
+    .github-card-head span {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.32;
+    }
+
+    .github-stat-card p {
+      white-space: pre-wrap;
     }
 
     .module-secret-note {
@@ -1592,16 +1837,39 @@
     .integration-panel {
       display: grid;
       gap: var(--space-4);
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: stretch;
+      min-width: 0;
+      overflow: hidden;
       padding: var(--space-4);
       border: 1px solid var(--border);
       background: var(--surface);
     }
 
+    .integration-panel-head {
+      display: grid;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      justify-self: stretch;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+
+    .integration-panel-title {
+      min-width: 0;
+      overflow: hidden;
+    }
+
     .integration-panel h3 {
       margin: 0;
+      overflow: hidden;
       font-size: 1rem;
       font-weight: 780;
       letter-spacing: -0.01em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .integration-panel p {
@@ -1672,8 +1940,29 @@
     @media (max-width: 720px) {
       .integration-grid,
       .layer-item,
-      .capability-row {
+      .capability-row,
+      .module-field-grid,
+      .github-metric-grid,
+      .github-dashboard-grid,
+      .github-stat-grid {
         grid-template-columns: 1fr;
+      }
+
+      .modules-anchor {
+        width: 100%;
+      }
+
+      .modules-popover {
+        position: fixed;
+        top: 5rem;
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+        max-height: calc(100vh - 6rem);
+      }
+
+      @supports (max-height: 100dvh) {
+        .modules-popover { max-height: calc(100dvh - 6rem); }
       }
     }
 
@@ -1731,14 +2020,46 @@
     @media (max-width: 980px) {
       .shell {
         grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
         gap: var(--space-4);
       }
 
       .resize-rail { display: none; }
 
-      .project-list { max-height: none; }
+      .project-index,
+      .detail { min-height: 0; }
 
-      .detail { min-height: auto; }
+      .detail {
+        display: block;
+        overflow: auto;
+      }
+
+      .detail-body,
+      .table-body {
+        overflow: visible;
+      }
+
+      .detail > .empty {
+        min-height: 100%;
+        overflow: visible;
+      }
+
+      .modules-anchor {
+        width: 100%;
+      }
+
+      .modules-popover {
+        position: fixed;
+        top: 5rem;
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+        max-height: calc(100vh - 6rem);
+      }
+
+      @supports (max-height: 100dvh) {
+        .modules-popover { max-height: calc(100dvh - 6rem); }
+      }
     }
 
     @media (max-width: 720px) {
@@ -1766,7 +2087,7 @@
 
       .shell {
         gap: var(--space-4);
-        padding: var(--space-4);
+        padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
       }
 
       .panel-header,
@@ -1835,10 +2156,10 @@
   <div class="app">
     <header class="topbar">
       <div class="topbar-inner">
-        <div class="brand" aria-label="OurDashboard">
+        <div class="brand" aria-label="projects.ourstuff.space">
           <div class="brand-mark" aria-hidden="true">🧰</div>
           <div>
-            <h1>OurDashboard</h1>
+            <h1>projects.ourstuff.space</h1>
             <p>a place to manage and admin your projects</p>
           </div>
         </div>
@@ -2230,6 +2551,7 @@
         workspace: "project",
         modulesOpen: false,
         openModuleSettings: null,
+        pendingModuleSettingsScroll: null,
         modulesPopoverScrollTop: 0,
         modulesMode: "list",
         sidebarCollapsed: false,
@@ -2494,6 +2816,8 @@
         return [...moduleDefinitions, ...settings.customModules];
       };
 
+      const moduleHasSettings = (moduleId) => ["planner", "calendar", "github"].includes(moduleId);
+
       const normalizeIntegrations = (integrations = {}) => ({
         planner: {
           planName: String(integrations.planner?.planName || "").trim(),
@@ -2529,6 +2853,171 @@
         };
       };
 
+      const trimField = (value = "") => String(value || "").trim();
+      const trimMultiline = (value = "") => String(value || "").replaceAll("\r\n", "\n").replaceAll("\r", "\n").trim();
+
+      const nonNegativeInteger = (value = 0) => {
+        const input = String(value ?? "").trim();
+        if (!/^\d+$/.test(input)) return 0;
+        const parsed = Number(input);
+        return Number.isSafeInteger(parsed) ? parsed : 0;
+      };
+
+      const pickAllowed = (value, allowed, fallback) => allowed.includes(value) ? value : fallback;
+
+      const safeDomId = (value = "item") => {
+        const clean = String(value || "item").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/(^-|-$)/g, "");
+        return clean || "item";
+      };
+
+      const githubVisibilityLabels = {
+        private: "Private",
+        public: "Public",
+        internal: "Internal"
+      };
+
+      const githubReleaseStatusLabels = {
+        unknown: "Unknown",
+        checking: "Checking",
+        ready: "Ready",
+        blocked: "Blocked",
+        shipped: "Shipped"
+      };
+
+      const githubChecksStatusLabels = {
+        unknown: "Unknown",
+        passing: "Passing",
+        failing: "Failing",
+        running: "Running",
+        skipped: "Skipped"
+      };
+
+      const githubPagesStatusLabels = {
+        unknown: "Unknown",
+        notConfigured: "Not configured",
+        deployed: "Deployed",
+        failing: "Failing",
+        paused: "Paused"
+      };
+
+      const githubRelatedRepoTypeLabels = {
+        app: "App",
+        backend: "Backend",
+        docs: "Docs",
+        mobile: "Mobile",
+        package: "Package",
+        infra: "Infra",
+        skill: "Skill",
+        other: "Other"
+      };
+
+      const githubRelatedRepoStatusLabels = {
+        active: "Active",
+        planned: "Planned",
+        paused: "Paused",
+        archived: "Archived"
+      };
+
+      const parseGitHubRepoUrl = (value = "") => {
+        const input = trimField(value);
+        if (!input) return {};
+        const match = input.match(/github\.com[/:]([^/\s]+)\/([^/\s?#]+?)(?:\.git)?(?:[/?#].*)?$/i);
+        if (!match) return {};
+        return {
+          owner: trimField(match[1]),
+          repo: trimField(match[2].replace(/\.git$/i, ""))
+        };
+      };
+
+      const makeGitHubRepoUrl = (owner, repo, existingUrl = "") => {
+        const trimmedUrl = trimField(existingUrl);
+        if (trimmedUrl) return trimmedUrl;
+        const cleanOwner = trimField(owner);
+        const cleanRepo = trimField(repo);
+        return cleanOwner && cleanRepo ? `https://github.com/${cleanOwner}/${cleanRepo}` : "";
+      };
+
+      const githubRepoRecordId = (repo, index) => {
+        if (repo?.id) return String(repo.id);
+        const seed = `${repo?.owner || ""}-${repo?.name || repo?.repo || ""}-${repo?.url || ""}`.toLowerCase();
+        const slug = seed.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "repo";
+        return `${index}-${slug}-${uid().slice(0, 6)}`;
+      };
+
+      const defaultGitHubRelatedRepo = (repo = {}, index = 0) => {
+        const parsed = parseGitHubRepoUrl(repo.url);
+        const owner = trimField(repo.owner || parsed.owner || "garbledhamster");
+        const name = trimField(repo.name || repo.repo || parsed.repo || "");
+        return {
+          id: githubRepoRecordId(repo, index),
+          type: pickAllowed(repo.type, Object.keys(githubRelatedRepoTypeLabels), "other"),
+          owner,
+          name,
+          url: makeGitHubRepoUrl(owner, name, repo.url),
+          localPath: trimField(repo.localPath),
+          branch: trimField(repo.branch || "main"),
+          role: trimField(repo.role),
+          status: pickAllowed(repo.status, Object.keys(githubRelatedRepoStatusLabels), "active"),
+          notes: trimMultiline(repo.notes)
+        };
+      };
+
+      const defaultGitHubSettings = (existing = {}) => {
+        const existingPrimary = existing.primaryRepo || {};
+        const parsed = parseGitHubRepoUrl(existingPrimary.url || existing.externalUrl);
+        const owner = trimField(existingPrimary.owner || parsed.owner || "garbledhamster");
+        const repo = trimField(existingPrimary.repo || existingPrimary.name || parsed.repo || existing.externalName || "");
+        const primaryRepo = {
+          owner,
+          repo,
+          url: makeGitHubRepoUrl(owner, repo, existingPrimary.url || existing.externalUrl),
+          localPath: trimField(existingPrimary.localPath),
+          defaultBranch: trimField(existingPrimary.defaultBranch || "main"),
+          currentBranch: trimField(existingPrimary.currentBranch || existingPrimary.branch || ""),
+          latestRef: trimField(existingPrimary.latestRef || existingPrimary.latestCommit || existing.externalId),
+          visibility: pickAllowed(existingPrimary.visibility, Object.keys(githubVisibilityLabels), "private")
+        };
+
+        const release = existing.releaseReadiness || {};
+        const workQueue = existing.workQueue || {};
+        const relatedRepos = Array.isArray(existing.relatedRepos)
+          ? existing.relatedRepos.slice(0, 10).map(defaultGitHubRelatedRepo)
+          : [];
+
+        return {
+          externalName: primaryRepo.repo,
+          externalUrl: primaryRepo.url,
+          externalId: primaryRepo.latestRef,
+          primaryRepo,
+          releaseReadiness: {
+            status: pickAllowed(release.status, Object.keys(githubReleaseStatusLabels), "unknown"),
+            releaseGate: trimField(release.releaseGate),
+            checksStatus: pickAllowed(release.checksStatus, Object.keys(githubChecksStatusLabels), "unknown"),
+            pagesStatus: pickAllowed(release.pagesStatus, Object.keys(githubPagesStatusLabels), "unknown"),
+            lastReleaseTag: trimField(release.lastReleaseTag || release.lastTag),
+            lastCheckedDate: trimField(release.lastCheckedDate || release.lastChecked),
+            lastCheckedBy: trimField(release.lastCheckedBy),
+            nextPushNote: trimMultiline(release.nextPushNote),
+            blockers: trimMultiline(release.blockers)
+          },
+          workQueue: {
+            openIssueCount: nonNegativeInteger(workQueue.openIssueCount),
+            openPrCount: nonNegativeInteger(workQueue.openPrCount || workQueue.openPRCount),
+            activeMilestone: trimField(workQueue.activeMilestone),
+            priorityIssueUrl: trimField(workQueue.priorityIssueUrl),
+            priorityPrUrl: trimField(workQueue.priorityPrUrl || workQueue.priorityPRUrl),
+            labelsConvention: trimField(workQueue.labelsConvention),
+            notes: trimMultiline(workQueue.notes || workQueue.issuePrNotes)
+          },
+          relatedRepos
+        };
+      };
+
+      const isGitHubConfigured = (settings = {}) => {
+        const github = defaultGitHubSettings(settings);
+        return Boolean(github.primaryRepo.owner && (github.primaryRepo.repo || github.primaryRepo.url));
+      };
+
       const defaultModuleSettings = (moduleId, existing = {}, integrations = {}) => {
         if (moduleId === "planner") {
           const planner = normalizeIntegrations(integrations).planner;
@@ -2551,6 +3040,10 @@
           };
         }
 
+        if (moduleId === "github") {
+          return defaultGitHubSettings(existing);
+        }
+
         return {
           externalName: String(existing.externalName || "").trim(),
           externalUrl: String(existing.externalUrl || "").trim(),
@@ -2563,16 +3056,17 @@
         return Object.fromEntries(getModuleDefinitions().map((module) => {
           const raw = modules[module.id] || {};
           const legacyPlannerLinked = module.id === "planner" && normalizedIntegrations.planner.status === "linked";
-          const secretVault = normalizeSecretVault(raw.secretVault);
           const settings = defaultModuleSettings(module.id, raw.settings || {}, normalizedIntegrations);
+          const secretVault = module.id === "github" ? null : normalizeSecretVault(raw.secretVault);
           const enabled = Boolean(raw.enabled || raw === true || legacyPlannerLinked);
-          const configured = Boolean(raw.configured || (legacyPlannerLinked && enabled));
+          const configured = module.id === "github"
+            ? Boolean(raw.configured || isGitHubConfigured(settings))
+            : Boolean(raw.configured || (legacyPlannerLinked && enabled));
           return [module.id, {
             enabled,
             configured,
             settings,
             secretVault,
-            lastConfirmed: raw.lastConfirmed || "",
             lastSettingsUpdate: raw.lastSettingsUpdate || ""
           }];
         }));
@@ -2644,10 +3138,18 @@
         }
       };
 
-      const persist = (message = "Saved") => {
+      const updateSaveStatus = (message) => {
+        state.saveStatus = message;
+        document.querySelectorAll(".save-state").forEach((item) => {
+          item.textContent = message;
+        });
+      };
+
+      const persist = (message = "Saved", options = {}) => {
+        const shouldRender = options.render !== false;
         if (!state.storageAvailable) {
-          state.saveStatus = "Session only";
-          renderWorkspace();
+          updateSaveStatus("Session only");
+          if (shouldRender) renderWorkspace();
           return;
         }
 
@@ -2658,13 +3160,13 @@
             appSettings: state.appSettings,
             version: 1
           }));
-          state.saveStatus = message;
-          render();
+          updateSaveStatus(message);
+          if (shouldRender) render();
         } catch (error) {
           state.storageAvailable = false;
-          state.saveStatus = "Save failed";
+          updateSaveStatus("Save failed");
           showStorageError("Changes could not be saved. Export your data if you need to keep the current session.");
-          render();
+          if (shouldRender) render();
         }
       };
 
@@ -2682,6 +3184,185 @@
         if (!project) return;
         Object.assign(project, patch, { updatedAt: now() });
         persist("Saved");
+      };
+
+      const saveProjectOverviewForm = (form, message, options) => {
+        const formData = new FormData(form);
+        const project = state.projects.find((item) => item.id === form.dataset.projectId);
+        const name = trimField(formData.get("name"));
+        if (!project || !name) return false;
+
+        Object.assign(project, {
+          name,
+          status: statusLabels[formData.get("status")] ? formData.get("status") : project.status,
+          stage: stageLabels[formData.get("stage")] ? formData.get("stage") : project.stage,
+          goal: trimMultiline(formData.get("goal")),
+          nextAction: trimMultiline(formData.get("nextAction")),
+          updatedAt: now()
+        });
+        persist(message, options);
+        return true;
+      };
+
+      const saveAppAccessSettingsForm = (form, message, options) => {
+        const formData = new FormData(form);
+        const settings = normalizeAppSettings(state.appSettings);
+        state.appSettings = normalizeAppSettings({
+          ...settings,
+          access: {
+            defaultRole: formData.get("defaultRole"),
+            localUsersEnabled: formData.has("localUsersEnabled"),
+            invitesEnabled: formData.has("invitesEnabled"),
+            adEnabled: formData.has("adEnabled"),
+            federationEnabled: formData.has("federationEnabled")
+          }
+        });
+        persist(message, options);
+        return true;
+      };
+
+      const saveDirectorySettingsForm = (form, message, options) => {
+        const formData = new FormData(form);
+        const settings = normalizeAppSettings(state.appSettings);
+        state.appSettings = normalizeAppSettings({
+          ...settings,
+          directory: {
+            provider: formData.get("provider"),
+            tenant: formData.get("tenant"),
+            issuerUrl: formData.get("issuerUrl"),
+            clientId: formData.get("clientId")
+          }
+        });
+        persist(message, options);
+        return true;
+      };
+
+      const saveProjectAccessForm = (form, message, options) => {
+        const formData = new FormData(form);
+        const project = state.projects.find((item) => item.id === form.dataset.projectId);
+        if (!project) return false;
+
+        project.access = normalizeAccess({
+          visibility: formData.get("visibility"),
+          owners: formData.get("owners"),
+          members: formData.get("members")
+        }, "project");
+        project.updatedAt = now();
+        persist(message, options);
+        return true;
+      };
+
+      const savePhaseAccessForm = (form, message, options) => {
+        const formData = new FormData(form);
+        const project = state.projects.find((item) => item.id === form.dataset.projectId);
+        const phase = project?.phases.find((item) => item.id === form.dataset.phaseId);
+        if (!project || !phase) return false;
+
+        phase.access = normalizeAccess({
+          visibility: formData.get("visibility"),
+          assignee: formData.get("assignee")
+        }, "project");
+        project.updatedAt = now();
+        persist(message, options);
+        return true;
+      };
+
+      const saveTaskAccessForm = (form, message, options) => {
+        const formData = new FormData(form);
+        const project = state.projects.find((item) => item.id === form.dataset.projectId);
+        const task = project?.tasks.find((item) => item.id === form.dataset.taskId);
+        if (!project || !task) return false;
+
+        task.access = normalizeAccess({
+          visibility: formData.get("visibility"),
+          assignee: formData.get("assignee")
+        }, "phase");
+        project.updatedAt = now();
+        persist(message, options);
+        return true;
+      };
+
+      const saveModuleSettingsForm = async (form, message, options = {}) => {
+        captureModulesScroll();
+        const project = state.projects.find((item) => item.id === form.dataset.projectId);
+        const moduleId = form.dataset.moduleId;
+        if (!project || !getModuleDefinitions().some((module) => module.id === moduleId)) return false;
+
+        const formData = new FormData(form);
+        project.modules = normalizeModules(project.modules, project.integrations);
+        const record = project.modules[moduleId];
+        record.enabled = true;
+
+        if (moduleId === "github") {
+          record.settings = collectGitHubSettings(formData, record.settings || {});
+          record.secretVault = null;
+          record.configured = isGitHubConfigured(record.settings);
+        } else {
+          record.settings = defaultModuleSettings(moduleId, {
+            ...(record.settings || {}),
+            backendSystem: formData.get("backendSystem"),
+            accountType: formData.get("accountType"),
+            externalName: formData.get("externalName"),
+            externalUrl: formData.get("externalUrl"),
+            externalId: formData.get("externalId"),
+            syncMode: formData.get("syncMode")
+          }, project.integrations);
+
+          const apiKey = trimField(formData.get("apiKey"));
+          const passphrase = String(formData.get("passphrase") || "");
+          if (apiKey && options.allowSecret) {
+            if (!passphrase) {
+              updateSaveStatus("Passphrase required");
+              if (options.render !== false) renderWorkspace();
+              return false;
+            }
+            try {
+              record.secretVault = await encryptLocalSecret(apiKey, passphrase);
+            } catch (error) {
+              updateSaveStatus("Secret save failed");
+              if (options.render !== false) renderWorkspace();
+              return false;
+            }
+          }
+
+          record.configured = Boolean(record.settings.externalName || record.settings.externalUrl || record.settings.externalId || record.secretVault);
+          if (moduleId === "planner") syncPlannerIntegrationFromModule(project);
+        }
+
+        record.lastSettingsUpdate = now();
+        project.updatedAt = now();
+        state.modulesOpen = true;
+        state.modulesMode = "list";
+        state.openModuleSettings = moduleId;
+        persist(message, options);
+        return true;
+      };
+
+      const saveEditableForm = async (form, options = {}) => {
+        const message = options.message || "Autosaved";
+        const persistOptions = { render: options.render !== false };
+
+        switch (form.dataset.action) {
+          case "edit-project":
+            return saveProjectOverviewForm(form, message, persistOptions);
+          case "save-app-access-settings":
+            return saveAppAccessSettingsForm(form, message, persistOptions);
+          case "save-directory-settings":
+            return saveDirectorySettingsForm(form, message, persistOptions);
+          case "save-project-access":
+            return saveProjectAccessForm(form, message, persistOptions);
+          case "save-phase-access":
+            return savePhaseAccessForm(form, message, persistOptions);
+          case "save-task-access":
+            return saveTaskAccessForm(form, message, persistOptions);
+          case "save-module-settings":
+            return saveModuleSettingsForm(form, message, {
+              ...persistOptions,
+              allowSecret: Boolean(options.allowSecret)
+            });
+          default:
+            return false;
+        }
       };
 
       const filteredProjects = () => {
@@ -2718,6 +3399,27 @@
         if (!popover) return;
         window.requestAnimationFrame(() => {
           popover.scrollTop = state.modulesPopoverScrollTop || 0;
+        });
+      };
+
+      const queueModuleSettingsScroll = (moduleId) => {
+        if (!moduleId) return;
+        state.pendingModuleSettingsScroll = moduleId;
+      };
+
+      const scrollPendingModuleSettingsIntoView = () => {
+        const moduleId = state.pendingModuleSettingsScroll;
+        if (!state.modulesOpen || !moduleId) return;
+        state.pendingModuleSettingsScroll = null;
+        window.requestAnimationFrame(() => {
+          const popover = document.querySelector(".modules-popover");
+          const settings = popover?.querySelector(`.module-settings[data-module-id="${moduleId}"]`);
+          if (!popover || !settings) return;
+          const popoverRect = popover.getBoundingClientRect();
+          const settingsRect = settings.getBoundingClientRect();
+          const targetTop = Math.max(0, popover.scrollTop + settingsRect.top - popoverRect.top - 12);
+          popover.scrollTo({ top: targetTop, behavior: "auto" });
+          state.modulesPopoverScrollTop = targetTop;
         });
       };
 
@@ -2911,6 +3613,7 @@
         }
         bindNavScrollIndicators();
         restoreModulesScroll();
+        scrollPendingModuleSettingsIntoView();
       };
 
       const renderSettingsTabs = () => {
@@ -3481,11 +4184,301 @@
         });
       };
 
+      const renderOptions = (labels, selected) => Object.entries(labels)
+        .map(([value, label]) => `<option value="${value}" ${selected === value ? "selected" : ""}>${escapeHtml(label)}</option>`)
+        .join("");
+
+      const isSafeHttpUrl = (value = "") => /^https?:\/\//i.test(trimField(value));
+
+      const renderExternalLink = (url, label, className = "button secondary small") => (
+        isSafeHttpUrl(url)
+          ? `<a class="${className}" href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`
+          : ""
+      );
+
+      const renderRepoTitle = (url, label) => (
+        isSafeHttpUrl(url)
+          ? `<a class="github-title-link" href="${escapeHtml(url)}" target="_blank" rel="noreferrer" aria-label="Open ${escapeHtml(label)} on GitHub">${escapeHtml(label)}</a>`
+          : escapeHtml(label)
+      );
+
+      const collectGitHubSettings = (formData, existing = {}, options = {}) => {
+        const parsedPrimary = parseGitHubRepoUrl(formData.get("primaryUrl"));
+        const primaryOwner = trimField(formData.get("primaryOwner") || parsedPrimary.owner || "garbledhamster");
+        const primaryRepoName = trimField(formData.get("primaryRepo") || parsedPrimary.repo);
+
+        const relatedIds = formData.getAll("relatedId");
+        const relatedTypes = formData.getAll("relatedType");
+        const relatedOwners = formData.getAll("relatedOwner");
+        const relatedNames = formData.getAll("relatedName");
+        const relatedUrls = formData.getAll("relatedUrl");
+        const relatedLocalPaths = formData.getAll("relatedLocalPath");
+        const relatedBranches = formData.getAll("relatedBranch");
+        const relatedRoles = formData.getAll("relatedRole");
+        const relatedStatuses = formData.getAll("relatedStatus");
+        const relatedNotes = formData.getAll("relatedNotes");
+
+        const relatedRepos = relatedIds.slice(0, 10).map((id, index) => {
+          const parsed = parseGitHubRepoUrl(relatedUrls[index]);
+          const rawName = trimField(relatedNames[index] || parsed.repo);
+          const rawUrl = trimField(relatedUrls[index]);
+          const rawLocalPath = trimField(relatedLocalPaths[index]);
+          const rawRole = trimField(relatedRoles[index]);
+          const rawNotes = trimMultiline(relatedNotes[index]);
+          const hasManualValue = Boolean(rawName || rawUrl || rawLocalPath || rawRole || rawNotes);
+          if (!hasManualValue && !options.keepBlankRelated) return null;
+
+          return defaultGitHubRelatedRepo({
+            id,
+            type: relatedTypes[index],
+            owner: trimField(relatedOwners[index] || parsed.owner || "garbledhamster"),
+            name: rawName,
+            url: rawUrl,
+            localPath: rawLocalPath,
+            branch: trimField(relatedBranches[index]),
+            role: rawRole,
+            status: relatedStatuses[index],
+            notes: rawNotes
+          }, index);
+        }).filter(Boolean);
+
+        return defaultGitHubSettings({
+          ...existing,
+          primaryRepo: {
+            owner: primaryOwner,
+            repo: primaryRepoName,
+            url: trimField(formData.get("primaryUrl")),
+            localPath: trimField(formData.get("primaryLocalPath")),
+            defaultBranch: trimField(formData.get("primaryDefaultBranch")),
+            currentBranch: trimField(formData.get("primaryCurrentBranch")),
+            latestRef: trimField(formData.get("primaryLatestRef")),
+            visibility: formData.get("primaryVisibility")
+          },
+          releaseReadiness: {
+            status: formData.get("releaseStatus"),
+            releaseGate: trimField(formData.get("releaseGate")),
+            checksStatus: formData.get("checksStatus"),
+            pagesStatus: formData.get("pagesStatus"),
+            lastReleaseTag: trimField(formData.get("lastReleaseTag")),
+            lastCheckedDate: trimField(formData.get("lastCheckedDate")),
+            lastCheckedBy: trimField(formData.get("lastCheckedBy")),
+            nextPushNote: trimMultiline(formData.get("nextPushNote")),
+            blockers: trimMultiline(formData.get("blockers"))
+          },
+          workQueue: {
+            openIssueCount: nonNegativeInteger(formData.get("openIssueCount")),
+            openPrCount: nonNegativeInteger(formData.get("openPrCount")),
+            activeMilestone: trimField(formData.get("activeMilestone")),
+            priorityIssueUrl: trimField(formData.get("priorityIssueUrl")),
+            priorityPrUrl: trimField(formData.get("priorityPrUrl")),
+            labelsConvention: trimField(formData.get("labelsConvention")),
+            notes: trimMultiline(formData.get("issuePrNotes"))
+          },
+          relatedRepos
+        });
+      };
+
+      const renderGitHubSettings = (project, module, record) => {
+        const settings = defaultGitHubSettings(record.settings || {});
+        const primary = settings.primaryRepo;
+        const release = settings.releaseReadiness;
+        const queue = settings.workQueue;
+        const relatedRepos = settings.relatedRepos;
+        const canAddRepo = relatedRepos.length < 10;
+
+        return `
+          <form class="module-settings github-settings" data-action="save-module-settings" data-project-id="${project.id}" data-module-id="${module.id}">
+            <fieldset class="module-fieldset">
+              <legend>Primary repo</legend>
+              <div class="module-field-grid">
+                <div class="field">
+                  <label for="githubPrimaryOwner">Owner</label>
+                  <input id="githubPrimaryOwner" class="input" name="primaryOwner" type="text" maxlength="80" value="${escapeHtml(primary.owner)}" placeholder="garbledhamster" />
+                </div>
+                <div class="field">
+                  <label for="githubPrimaryRepo">Repo name</label>
+                  <input id="githubPrimaryRepo" class="input" name="primaryRepo" type="text" maxlength="120" value="${escapeHtml(primary.repo)}" placeholder="project-repo" />
+                </div>
+                <div class="field full">
+                  <label for="githubPrimaryUrl">Repo URL</label>
+                  <input id="githubPrimaryUrl" class="input" name="primaryUrl" type="url" value="${escapeHtml(primary.url)}" placeholder="https://github.com/garbledhamster/project-repo" />
+                </div>
+                <div class="field full">
+                  <label for="githubPrimaryLocalPath">Local path</label>
+                  <input id="githubPrimaryLocalPath" class="input" name="primaryLocalPath" type="text" value="${escapeHtml(primary.localPath)}" placeholder="C:\\Github\\project-repo" />
+                </div>
+                <div class="field">
+                  <label for="githubDefaultBranch">Default branch</label>
+                  <input id="githubDefaultBranch" class="input" name="primaryDefaultBranch" type="text" maxlength="80" value="${escapeHtml(primary.defaultBranch)}" placeholder="main" />
+                </div>
+                <div class="field">
+                  <label for="githubCurrentBranch">Current branch</label>
+                  <input id="githubCurrentBranch" class="input" name="primaryCurrentBranch" type="text" maxlength="120" value="${escapeHtml(primary.currentBranch)}" placeholder="feature/github-module" />
+                </div>
+                <div class="field">
+                  <label for="githubLatestRef">Latest commit/ref</label>
+                  <input id="githubLatestRef" class="input" name="primaryLatestRef" type="text" maxlength="160" value="${escapeHtml(primary.latestRef)}" placeholder="Commit SHA, tag, or branch ref" />
+                </div>
+                <div class="field">
+                  <label for="githubVisibility">Visibility</label>
+                  <select id="githubVisibility" class="select" name="primaryVisibility">${renderOptions(githubVisibilityLabels, primary.visibility)}</select>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="module-fieldset">
+              <legend>Ship readiness</legend>
+              <div class="module-field-grid">
+                <div class="field">
+                  <label for="githubReleaseStatus">Release status</label>
+                  <select id="githubReleaseStatus" class="select" name="releaseStatus">${renderOptions(githubReleaseStatusLabels, release.status)}</select>
+                </div>
+                <div class="field">
+                  <label for="githubReleaseGate">Release gate</label>
+                  <input id="githubReleaseGate" class="input" name="releaseGate" type="text" maxlength="140" value="${escapeHtml(release.releaseGate)}" placeholder="github-ready, manual QA, release checklist" />
+                </div>
+                <div class="field">
+                  <label for="githubChecksStatus">Checks status</label>
+                  <select id="githubChecksStatus" class="select" name="checksStatus">${renderOptions(githubChecksStatusLabels, release.checksStatus)}</select>
+                </div>
+                <div class="field">
+                  <label for="githubPagesStatus">Pages/deploy status</label>
+                  <select id="githubPagesStatus" class="select" name="pagesStatus">${renderOptions(githubPagesStatusLabels, release.pagesStatus)}</select>
+                </div>
+                <div class="field">
+                  <label for="githubLastReleaseTag">Last release/tag</label>
+                  <input id="githubLastReleaseTag" class="input" name="lastReleaseTag" type="text" maxlength="120" value="${escapeHtml(release.lastReleaseTag)}" placeholder="v1.0.0 or latest tag" />
+                </div>
+                <div class="field">
+                  <label for="githubLastCheckedDate">Last checked date</label>
+                  <input id="githubLastCheckedDate" class="input" name="lastCheckedDate" type="date" value="${escapeHtml(release.lastCheckedDate.slice(0, 10))}" />
+                </div>
+                <div class="field full">
+                  <label for="githubLastCheckedBy">Last checked by</label>
+                  <input id="githubLastCheckedBy" class="input" name="lastCheckedBy" type="text" maxlength="120" value="${escapeHtml(release.lastCheckedBy)}" placeholder="Name or role" />
+                </div>
+                <div class="field full">
+                  <label for="githubNextPushNote">Next push note</label>
+                  <textarea id="githubNextPushNote" class="textarea" name="nextPushNote" maxlength="1200" placeholder="What should happen on the next push?">${escapeHtml(release.nextPushNote)}</textarea>
+                </div>
+                <div class="field full">
+                  <label for="githubBlockers">Blockers</label>
+                  <textarea id="githubBlockers" class="textarea" name="blockers" maxlength="1200" placeholder="Release blockers, failing checks, missing review, deploy risks">${escapeHtml(release.blockers)}</textarea>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="module-fieldset">
+              <legend>Issues and PRs</legend>
+              <div class="github-metric-grid">
+                <div class="field">
+                  <label for="githubOpenIssues">Open issues</label>
+                  <input id="githubOpenIssues" class="input" name="openIssueCount" type="number" min="0" step="1" value="${queue.openIssueCount}" />
+                </div>
+                <div class="field">
+                  <label for="githubOpenPrs">Open PRs</label>
+                  <input id="githubOpenPrs" class="input" name="openPrCount" type="number" min="0" step="1" value="${queue.openPrCount}" />
+                </div>
+                <div class="field full">
+                  <label for="githubActiveMilestone">Active milestone</label>
+                  <input id="githubActiveMilestone" class="input" name="activeMilestone" type="text" maxlength="140" value="${escapeHtml(queue.activeMilestone)}" placeholder="Current milestone or release train" />
+                </div>
+                <div class="field full">
+                  <label for="githubPriorityIssue">Priority issue URL</label>
+                  <input id="githubPriorityIssue" class="input" name="priorityIssueUrl" type="url" value="${escapeHtml(queue.priorityIssueUrl)}" placeholder="https://github.com/owner/repo/issues/1" />
+                </div>
+                <div class="field full">
+                  <label for="githubPriorityPr">Priority PR URL</label>
+                  <input id="githubPriorityPr" class="input" name="priorityPrUrl" type="url" value="${escapeHtml(queue.priorityPrUrl)}" placeholder="https://github.com/owner/repo/pull/1" />
+                </div>
+                <div class="field full">
+                  <label for="githubLabelsConvention">Labels convention</label>
+                  <input id="githubLabelsConvention" class="input" name="labelsConvention" type="text" maxlength="220" value="${escapeHtml(queue.labelsConvention)}" placeholder="bug, enhancement, ready, blocked, release" />
+                </div>
+                <div class="field full">
+                  <label for="githubIssuePrNotes">Issue/PR notes</label>
+                  <textarea id="githubIssuePrNotes" class="textarea" name="issuePrNotes" maxlength="1200" placeholder="Manual queue notes">${escapeHtml(queue.notes)}</textarea>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="module-fieldset">
+              <legend>Related repos</legend>
+              ${relatedRepos.length === 0 ? `<p class="module-secret-note">No related repos yet. Add docs, backend, mobile, package, or infra repos that support this project.</p>` : ""}
+              <ul class="related-repo-list">
+                ${relatedRepos.map((repo, index) => {
+                  const domId = `related-${safeDomId(repo.id || index)}`;
+                  return `
+                  <li class="related-repo-item">
+                    <input type="hidden" name="relatedId" value="${escapeHtml(repo.id)}" />
+                    <div class="related-repo-head">
+                      <strong>Related repo ${index + 1}</strong>
+                      <button class="button ghost small" type="button" data-action="remove-related-repo" data-project-id="${project.id}" data-module-id="github" data-related-id="${escapeHtml(repo.id)}">Remove</button>
+                    </div>
+                    <div class="module-field-grid">
+                      <div class="field">
+                        <label for="${domId}-type">Type</label>
+                        <select id="${domId}-type" class="select" name="relatedType">${renderOptions(githubRelatedRepoTypeLabels, repo.type)}</select>
+                      </div>
+                      <div class="field">
+                        <label for="${domId}-status">Status</label>
+                        <select id="${domId}-status" class="select" name="relatedStatus">${renderOptions(githubRelatedRepoStatusLabels, repo.status)}</select>
+                      </div>
+                      <div class="field">
+                        <label for="${domId}-owner">Owner</label>
+                        <input id="${domId}-owner" class="input" name="relatedOwner" type="text" maxlength="80" value="${escapeHtml(repo.owner)}" />
+                      </div>
+                      <div class="field">
+                        <label for="${domId}-name">Repo name</label>
+                        <input id="${domId}-name" class="input" name="relatedName" type="text" maxlength="120" value="${escapeHtml(repo.name)}" />
+                      </div>
+                      <div class="field full">
+                        <label for="${domId}-url">Repo URL</label>
+                        <input id="${domId}-url" class="input" name="relatedUrl" type="url" value="${escapeHtml(repo.url)}" />
+                      </div>
+                      <div class="field full">
+                        <label for="${domId}-local-path">Local path</label>
+                        <input id="${domId}-local-path" class="input" name="relatedLocalPath" type="text" value="${escapeHtml(repo.localPath)}" />
+                      </div>
+                      <div class="field">
+                        <label for="${domId}-branch">Branch</label>
+                        <input id="${domId}-branch" class="input" name="relatedBranch" type="text" maxlength="120" value="${escapeHtml(repo.branch)}" />
+                      </div>
+                      <div class="field">
+                        <label for="${domId}-role">Role in project</label>
+                        <input id="${domId}-role" class="input" name="relatedRole" type="text" maxlength="180" value="${escapeHtml(repo.role)}" placeholder="Docs, package, backend, deploy target" />
+                      </div>
+                      <div class="field full">
+                        <label for="${domId}-notes">Notes</label>
+                        <textarea id="${domId}-notes" class="textarea" name="relatedNotes" maxlength="900">${escapeHtml(repo.notes)}</textarea>
+                      </div>
+                    </div>
+                  </li>
+                `;
+                }).join("")}
+              </ul>
+              <button class="button secondary small" type="button" data-action="add-related-repo" data-project-id="${project.id}" data-module-id="github" ${canAddRepo ? "" : "disabled"}>Add related repo</button>
+            </fieldset>
+
+            <p class="module-secret-note">Manual-only V1. Paste values from GitHub, GitHub Desktop, Actions, Pages, and local repo folders. API sync can use this shape later.</p>
+
+            <div class="module-actions">
+              <button class="button secondary small" type="submit">Save settings</button>
+            </div>
+          </form>
+        `;
+      };
+
       const renderModuleSettings = (project, module) => {
         const record = project.modules?.[module.id] || normalizeModules({}, project.integrations)[module.id];
         const settings = record.settings || {};
         const secretSaved = Boolean(record.secretVault);
         const configured = Boolean(record.configured);
+
+        if (module.id === "github") {
+          return renderGitHubSettings(project, module, record);
+        }
+
         const plannerProfile = module.id === "planner"
           ? plannerBackendProfiles[settings.backendSystem] || plannerBackendProfiles["microsoft-planner"]
           : null;
@@ -3570,8 +4563,6 @@
 
             <div class="module-actions">
               <button class="button secondary small" type="submit">💾 Save settings</button>
-              <button class="button primary small" type="button" data-action="confirm-module" data-project-id="${project.id}" data-module-id="${module.id}">✅ Confirm working</button>
-              ${configured ? `<button class="button ghost small" type="button" data-action="open-module" data-project-id="${project.id}" data-module-id="${module.id}">Open dashboard</button>` : ""}
             </div>
           </form>
         `;
@@ -3615,14 +4606,17 @@
             <div class="modules-popover-head">
               <div>
                 <h3>🧩 Modules</h3>
-                <p>Enable or disable project modules. Enabled modules appear in the project nav.</p>
+                <p>${state.modulesMode === "install" ? "Install a local module definition." : "Enable modules and edit their settings."}</p>
               </div>
               <button class="button ghost small" type="button" data-action="close-modules" aria-label="Close modules selector">✕</button>
             </div>
+            ${state.modulesMode === "install" ? renderNewModuleInstaller(project) : `
             <ul class="module-selector-list">
               ${modules.map((module) => {
                 const record = project.modules?.[module.id] || normalizeModules({}, project.integrations)[module.id];
                 const enabled = Boolean(record.enabled);
+                const hasSettings = moduleHasSettings(module.id);
+                const settingsOpen = state.openModuleSettings === module.id;
                 return `
                   <li class="module-selector-item">
                     <input
@@ -3636,15 +4630,27 @@
                     />
                     <div class="module-selector-main">
                       <div class="module-selector-title">
-                        <span class="module-link" aria-disabled="true">${module.icon} ${module.name}</span>
-                        <span class="module-state">${enabled ? "On" : "Off"}</span>
+                        <span class="module-title-text" title="${escapeHtml(module.name)}">${module.icon} ${escapeHtml(module.name)}</span>
+                        <span class="module-title-actions">
+                          <span class="module-state">${enabled ? "On" : "Off"}</span>
+                          ${enabled && hasSettings ? `
+                            <button class="module-settings-toggle" type="button" data-action="toggle-module-settings" data-project-id="${project.id}" data-module-id="${module.id}" aria-expanded="${settingsOpen}" aria-label="Configure ${escapeHtml(module.name)} module" title="Configure ${escapeHtml(module.name)}"><span class="module-settings-glyph" aria-hidden="true">&#9881;</span></button>
+                          ` : ""}
+                        </span>
                       </div>
                       <p class="module-caption">${escapeHtml(module.desc)}</p>
+                      ${enabled && hasSettings ? `
+                        ${settingsOpen ? renderModuleSettings(project, module) : ""}
+                      ` : ""}
                     </div>
                   </li>
                 `;
               }).join("")}
             </ul>
+            <div class="module-installer">
+              <button class="button secondary small" type="button" data-action="switch-modules-mode" data-modules-mode="install">Install custom module</button>
+            </div>
+            `}
           </div>
         `;
       };
@@ -3658,13 +4664,16 @@
         return `
           <section id="panel-module-planner" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-planner">
             <section class="integration-panel" aria-labelledby="plannerModuleHeading">
-              <div>
-                <h3 id="plannerModuleHeading">📋 Planner</h3>
-                <p>This module maps OurDashboard projects, phases, and tasks into an external planning backend.</p>
+              <div class="integration-panel-head">
+                <div class="integration-panel-title">
+                  <h3 id="plannerModuleHeading">📋 Planner</h3>
+                  <p>This module maps OurDashboard projects, phases, and tasks into an external planning backend.</p>
+                </div>
+                <button class="module-settings-toggle" type="button" data-action="open-modules" data-project-id="${project.id}" data-module-id="planner" aria-expanded="${state.modulesOpen && state.openModuleSettings === "planner"}" aria-label="Configure Planner module" title="Configure Planner"><span class="module-settings-glyph" aria-hidden="true">&#9881;</span></button>
               </div>
 
               <div class="integration-status">
-                <span class="badge ${linked ? "active" : "paused"}">${linked ? "🟢 Confirmed working" : "⚪ Needs setup"}</span>
+                <span class="badge ${linked ? "active" : "paused"}">${linked ? "🟢 Configured" : "⚪ Needs setup"}</span>
                 <span class="badge">🧱 ${plannerBackendLabels[settings.backendSystem] || "Planner backend"}</span>
                 <span class="badge">🔁 ${settings.syncMode === "two-way" ? "Two-way sync" : settings.syncMode === "backend-to-dashboard" ? "Backend to OurDashboard" : settings.syncMode === "dashboard-to-backend" ? "OurDashboard to backend" : "Manual sync"}</span>
                 <span class="badge">🕒 ${planner.lastSync ? `Last checked ${formatDate(planner.lastSync)}` : "Never checked"}</span>
@@ -3677,7 +4686,6 @@
               </div>
 
               <div class="detail-actions">
-                <button class="button secondary" type="button" data-action="open-modules" data-project-id="${project.id}">⚙️ Configure module</button>
                 <button class="button secondary" type="button" data-action="mark-planner-sync" data-project-id="${project.id}">🔁 Mark sync check</button>
               </div>
             </section>
@@ -3712,12 +4720,121 @@
         `;
       };
 
+      const renderGitHubModulePanel = (project, module) => {
+        const record = project.modules?.github || normalizeModules({}, project.integrations).github;
+        const settings = defaultGitHubSettings(record.settings || {});
+        const primary = settings.primaryRepo;
+        const release = settings.releaseReadiness;
+        const queue = settings.workQueue;
+        const repoName = primary.owner && primary.repo ? `${primary.owner}/${primary.repo}` : primary.url || "No primary repo saved";
+
+        return `
+          <section id="panel-module-github" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-github">
+            <section class="integration-panel" aria-labelledby="githubModuleHeading">
+              <div class="integration-panel-head">
+                <div class="integration-panel-title">
+                  <h3 id="githubModuleHeading">🐙 GitHub</h3>
+                  <p>Manual repo tracking for ship readiness, issues, PRs, deploy status, and the next push.</p>
+                </div>
+                <button class="module-settings-toggle" type="button" data-action="open-modules" data-project-id="${project.id}" data-module-id="github" aria-expanded="${state.modulesOpen && state.openModuleSettings === "github"}" aria-label="Configure GitHub module" title="Configure GitHub"><span class="module-settings-glyph" aria-hidden="true">&#9881;</span></button>
+              </div>
+
+              <div class="integration-status">
+                <span class="badge ${record.configured ? "active" : "paused"}">${record.configured ? "Configured" : "Needs setup"}</span>
+                <span class="badge">${escapeHtml(githubReleaseStatusLabels[release.status] || "Unknown")}</span>
+                <span class="badge">Checks: ${escapeHtml(githubChecksStatusLabels[release.checksStatus] || "Unknown")}</span>
+                <span class="badge">Deploy: ${escapeHtml(githubPagesStatusLabels[release.pagesStatus] || "Unknown")}</span>
+                <span class="badge">${release.lastCheckedDate ? `Checked ${escapeHtml(release.lastCheckedDate)}` : "Never checked"}</span>
+              </div>
+
+              <div class="github-dashboard-grid">
+                <div class="layer-stack">
+                  <div class="github-stat-card">
+                    <div class="github-card-head">
+                      <strong>${renderRepoTitle(primary.url, repoName)}</strong>
+                      <span>${escapeHtml(githubVisibilityLabels[primary.visibility] || "Private")}</span>
+                    </div>
+                    <div class="metadata-row">
+                      <span>Default: ${escapeHtml(primary.defaultBranch || "main")}</span>
+                      <span>Current: ${escapeHtml(primary.currentBranch || "Not saved")}</span>
+                      <span>Ref: ${escapeHtml(primary.latestRef || "Not saved")}</span>
+                    </div>
+                    ${primary.localPath ? `<div class="module-actions"><span class="badge">Local: ${escapeHtml(primary.localPath)}</span></div>` : ""}
+                  </div>
+
+                  <div class="github-stat-grid">
+                    <div class="github-stat-card">
+                      <span>Open issues</span>
+                      <strong>${queue.openIssueCount}</strong>
+                      ${renderExternalLink(queue.priorityIssueUrl, "Priority issue", "button ghost small")}
+                    </div>
+                    <div class="github-stat-card">
+                      <span>Open PRs</span>
+                      <strong>${queue.openPrCount}</strong>
+                      ${renderExternalLink(queue.priorityPrUrl, "Priority PR", "button ghost small")}
+                    </div>
+                  </div>
+
+                  <div class="github-stat-card">
+                    <div class="github-card-head">
+                      <strong>Next push</strong>
+                      <span>${escapeHtml(release.releaseGate || "No release gate")}</span>
+                    </div>
+                    <p>${escapeHtml(release.nextPushNote || "No next push note saved.")}</p>
+                    ${release.blockers ? `<p><strong>Blockers:</strong> ${escapeHtml(release.blockers)}</p>` : ""}
+                  </div>
+                </div>
+
+                <div class="layer-stack">
+                  <div class="github-stat-card">
+                    <div class="github-card-head">
+                      <strong>Queue context</strong>
+                      <span>${escapeHtml(queue.activeMilestone || "No milestone")}</span>
+                    </div>
+                    <p>${escapeHtml(queue.notes || "No issue or PR notes saved.")}</p>
+                    ${queue.labelsConvention ? `<p><strong>Labels:</strong> ${escapeHtml(queue.labelsConvention)}</p>` : ""}
+                  </div>
+
+                  <div class="github-stat-card">
+                    <div class="github-card-head">
+                      <strong>Related repos</strong>
+                      <span>${settings.relatedRepos.length} saved</span>
+                    </div>
+                    ${settings.relatedRepos.length === 0 ? `<p>No related repos saved.</p>` : `
+                      <ul class="github-related-list">
+                        ${settings.relatedRepos.slice(0, 5).map((repo) => {
+                          const relatedRepoName = `${repo.owner}/${repo.name || "unnamed"}`;
+                          return `
+                          <li class="github-related-card">
+                            <div class="github-card-head">
+                              <strong>${renderRepoTitle(repo.url, relatedRepoName)}</strong>
+                              <span>${escapeHtml(githubRelatedRepoTypeLabels[repo.type] || "Other")}</span>
+                            </div>
+                            <span>${escapeHtml(repo.role || repo.status || "No role saved")}</span>
+                            <div class="module-actions">
+                              ${repo.branch ? `<span class="badge">${escapeHtml(repo.branch)}</span>` : ""}
+                            </div>
+                          </li>
+                        `;
+                        }).join("")}
+                      </ul>
+                    `}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </section>
+        `;
+      };
+
       const renderModulePanel = (project, moduleId) => {
         const module = getModuleDefinitions().find((item) => item.id === moduleId);
         if (!module || !project.modules?.[module.id]?.enabled) {
           state.projectTab = "overview";
           return renderOverviewPanel(project);
         }
+        if (module.id === "planner") return renderPlannerModulePanel(project, module);
+        if (module.id === "github") return renderGitHubModulePanel(project, module);
         return renderComingSoonModulePanel(project, module);
       };
 
@@ -4060,6 +5177,14 @@
 
       document.addEventListener("click", (event) => {
         const target = event.target.closest("[data-action], [data-project-id]");
+        const isModuleSettingsLauncher = target?.dataset.action === "open-modules" && target.dataset.moduleId;
+
+        if (state.modulesOpen && !event.target.closest(".modules-anchor") && !isModuleSettingsLauncher) {
+          state.modulesOpen = false;
+          renderWorkspace();
+          return;
+        }
+
         if (!target) return;
 
         const action = target.dataset.action;
@@ -4127,10 +5252,18 @@
         if (action === "open-modules") {
           const project = state.projects.find((item) => item.id === target.dataset.projectId);
           if (!project) return;
-          state.modulesOpen = !state.modulesOpen;
+          const moduleId = target.dataset.moduleId;
+          const opensModuleSettings = moduleId && moduleHasSettings(moduleId);
+          state.modulesOpen = opensModuleSettings ? true : !state.modulesOpen;
           if (state.modulesOpen) {
             state.modulesMode = "list";
             state.modulesPopoverScrollTop = 0;
+            if (opensModuleSettings) {
+              state.openModuleSettings = moduleId;
+              queueModuleSettingsScroll(moduleId);
+            }
+          } else {
+            state.pendingModuleSettingsScroll = null;
           }
           renderWorkspace();
           return;
@@ -4142,13 +5275,26 @@
           return;
         }
 
-        if (action === "open-module") {
+        if (action === "switch-modules-mode") {
+          captureModulesScroll();
+          state.modulesMode = target.dataset.modulesMode === "install" ? "install" : "list";
+          state.openModuleSettings = null;
+          renderWorkspace();
+          return;
+        }
+
+        if (action === "toggle-module-settings") {
+          captureModulesScroll();
           const project = state.projects.find((item) => item.id === target.dataset.projectId);
           const moduleId = target.dataset.moduleId;
-          if (!project || !project.modules?.[moduleId]?.enabled) return;
-          state.projectTab = `module:${moduleId}`;
-          state.modulesOpen = false;
-          state.workspace = "project";
+          if (!project || !getModuleDefinitions().some((module) => module.id === moduleId)) return;
+          if (!moduleHasSettings(moduleId)) return;
+          project.modules = normalizeModules(project.modules, project.integrations);
+          if (!project.modules[moduleId]?.enabled) return;
+          const openingSettings = state.openModuleSettings !== moduleId;
+          state.openModuleSettings = openingSettings ? moduleId : null;
+          state.modulesMode = "list";
+          if (openingSettings) queueModuleSettingsScroll(moduleId);
           renderWorkspace();
           return;
         }
@@ -4160,6 +5306,61 @@
           project.integrations.planner.lastSync = now();
           project.updatedAt = now();
           persist("Planner sync checked");
+          return;
+        }
+
+        if (action === "add-related-repo") {
+          captureModulesScroll();
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.modules = normalizeModules(project.modules, project.integrations);
+          const record = project.modules.github;
+          record.enabled = true;
+          const form = target.closest("form");
+          const settings = form
+            ? collectGitHubSettings(new FormData(form), record.settings || {}, { keepBlankRelated: true })
+            : defaultGitHubSettings(record.settings || {});
+          if (settings.relatedRepos.length >= 10) return;
+          settings.relatedRepos.push(defaultGitHubRelatedRepo({
+            id: uid(),
+            type: "other",
+            owner: "garbledhamster",
+            name: "",
+            branch: "main",
+            status: "active"
+          }, settings.relatedRepos.length));
+          record.settings = defaultGitHubSettings(settings);
+          record.configured = isGitHubConfigured(record.settings);
+          record.lastSettingsUpdate = now();
+          record.secretVault = null;
+          project.updatedAt = now();
+          state.modulesOpen = true;
+          state.modulesMode = "list";
+          state.openModuleSettings = "github";
+          persist("Related repo added");
+          return;
+        }
+
+        if (action === "remove-related-repo") {
+          captureModulesScroll();
+          const project = state.projects.find((item) => item.id === target.dataset.projectId);
+          if (!project) return;
+          project.modules = normalizeModules(project.modules, project.integrations);
+          const record = project.modules.github;
+          const form = target.closest("form");
+          const settings = form
+            ? collectGitHubSettings(new FormData(form), record.settings || {}, { keepBlankRelated: true })
+            : defaultGitHubSettings(record.settings || {});
+          settings.relatedRepos = settings.relatedRepos.filter((repo) => repo.id !== target.dataset.relatedId);
+          record.settings = defaultGitHubSettings(settings);
+          record.configured = isGitHubConfigured(record.settings);
+          record.lastSettingsUpdate = now();
+          record.secretVault = null;
+          project.updatedAt = now();
+          state.modulesOpen = true;
+          state.modulesMode = "list";
+          state.openModuleSettings = "github";
+          persist("Related repo removed");
           return;
         }
 
@@ -4304,7 +5505,14 @@
           if (!project || !getModuleDefinitions().some((module) => module.id === moduleId)) return;
           project.modules = normalizeModules(project.modules, project.integrations);
           project.modules[moduleId].enabled = target.checked;
-          project.modules[moduleId].configured = false;
+          project.modules[moduleId].configured = target.checked && moduleId === "github"
+            ? isGitHubConfigured(project.modules[moduleId].settings)
+            : false;
+          const openingSettings = target.checked && moduleHasSettings(moduleId);
+          state.openModuleSettings = openingSettings
+            ? moduleId
+            : state.openModuleSettings === moduleId ? null : state.openModuleSettings;
+          if (openingSettings) queueModuleSettingsScroll(moduleId);
           if (!target.checked && state.projectTab === `module:${moduleId}`) {
             state.projectTab = "overview";
           }
@@ -4333,19 +5541,53 @@
           return;
         }
 
-        if (action === "edit-project") {
+        if ([
+          "edit-project",
+          "save-app-access-settings",
+          "save-directory-settings",
+          "save-project-access",
+          "save-phase-access",
+          "save-task-access",
+          "save-module-settings"
+        ].includes(action)) {
+          event.preventDefault();
+          await saveEditableForm(form, {
+            message: action === "save-module-settings" ? "Module settings saved" : "Saved",
+            render: true,
+            allowSecret: true
+          });
+          return;
+        }
+
+        if (action === "install-custom-module") {
           event.preventDefault();
           const formData = new FormData(form);
-          const name = String(formData.get("name") || "").trim();
-          if (!name) return;
+          let parsed;
+          try {
+            parsed = JSON.parse(String(formData.get("moduleCode") || ""));
+          } catch (error) {
+            state.saveStatus = "Invalid module JSON";
+            renderWorkspace();
+            return;
+          }
 
-          updateProject(form.dataset.projectId, {
-            name,
-            status: formData.get("status"),
-            stage: formData.get("stage"),
-            goal: String(formData.get("goal") || "").trim(),
-            nextAction: String(formData.get("nextAction") || "").trim()
-          });
+          const module = normalizeCustomModule(parsed);
+          if (!module || moduleDefinitions.some((item) => item.id === module.id)) {
+            state.saveStatus = "Invalid module";
+            renderWorkspace();
+            return;
+          }
+
+          state.appSettings = normalizeAppSettings(state.appSettings);
+          state.appSettings.customModules = state.appSettings.customModules.filter((item) => item.id !== module.id);
+          state.appSettings.customModules.push(module);
+          state.projects = state.projects.map((project) => ({
+            ...project,
+            modules: normalizeModules(project.modules, project.integrations)
+          }));
+          state.modulesMode = "list";
+          state.openModuleSettings = module.id;
+          persist("Module installed");
           return;
         }
 
@@ -4416,6 +5658,42 @@
       els.searchInput.addEventListener("input", (event) => {
         state.search = event.target.value;
         render();
+      });
+
+      const autosaveFormActions = new Set([
+        "edit-project",
+        "save-app-access-settings",
+        "save-directory-settings",
+        "save-project-access",
+        "save-phase-access",
+        "save-task-access",
+        "save-module-settings"
+      ]);
+      const autosaveTimers = new WeakMap();
+
+      const scheduleAutosave = (target, delay = 450) => {
+        const form = target.closest?.("form[data-action]");
+        if (!form || !autosaveFormActions.has(form.dataset.action)) return;
+        if (target.matches?.("input[type='password']")) return;
+        if (target.dataset.action && target.dataset.action !== form.dataset.action) return;
+
+        window.clearTimeout(autosaveTimers.get(form));
+        updateSaveStatus("Saving...");
+        autosaveTimers.set(form, window.setTimeout(async () => {
+          await saveEditableForm(form, {
+            message: "Autosaved",
+            render: false,
+            allowSecret: false
+          });
+        }, delay));
+      };
+
+      document.addEventListener("input", (event) => {
+        scheduleAutosave(event.target, 450);
+      });
+
+      document.addEventListener("change", (event) => {
+        scheduleAutosave(event.target, 0);
       });
 
       document.addEventListener("input", (event) => {
