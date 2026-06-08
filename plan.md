@@ -1,5 +1,99 @@
 # GitHub Module V1 Manual Tracking Plan
 
+## Current Task: Notes System UX
+
+- [x] Query Local AI Brain for project notes context.
+- [ ] Compare current project notes with `ourstuff.space` notes behavior.
+- [ ] Use Spark helper discovery before implementation.
+- [ ] Use Copilot auto for code-writing if a write is needed.
+- [ ] Verify notes behavior in browser.
+
+## Current Task: Module Enable Settings Behavior
+
+- [x] Inspect module popover render and toggle handlers.
+- [x] Stop module enable from auto-opening settings.
+- [x] Preserve explicit settings gear behavior.
+- [x] Verify syntax and UI behavior.
+
+## AI-First Module Generation (Frontend Slice)
+
+- [x] Add AI generation state to app state (jobs, drafts, prompt-open, prompt text).
+- [x] Add API client helpers using optional bearer token and configurable endpoint with safe fallback.
+- [x] Add prompt-first module creation flow while keeping JSON install form as advanced fallback.
+- [x] Add per-module AI adjust button, prompt box, spinner/status indicators, polling loop, and preview apply/cancel actions.
+- [x] Add apply path through `normalizeCustomModule` and existing persistence path for `state.appSettings.customModules`.
+- [x] Preserve safe schema metadata on generated custom modules and reject renderer/code fields.
+- [x] Add protected backend `aiApi` start/status modes in `C:\Github\ourstuff.space\.firebase\index.js`.
+- [x] Browser smoke: built-ins load, project creation works, Modules opens, 14 robot controls mount, prompt generation shows auth-token status without console errors.
+- [ ] Add explicit UI copy polish and accessibility passes.
+- [ ] Replace temporary localStorage bearer-token bridge with first-class Firebase auth in `projects.ourstuff.space`.
+
+# Module System Schema Manifest Plan
+
+## Mission
+
+Move built-in module definitions out of `index.html` and away from per-module JavaScript files. Keep the static app working while setting up the next step: an AI-first module creator that returns validated schema blueprints rendered by a generic interpreter.
+
+## Constraints
+
+- Keep the app framework-free and GitHub Pages friendly.
+- Keep `index.html` as the main app shell for now; do not migrate the full application into a bundler.
+- Preserve current localStorage/export/import data shape: `state.appSettings.customModules` and `project.modules[moduleId]`.
+- Do not expose model/API keys or add browser-side LLM calls.
+- V1 generated modules should be schema-only. Reject custom JavaScript until a real sandbox/action model is designed.
+- Preserve existing GitHub module manual tracking behavior.
+
+## Target Architecture
+
+- `assets/modules/builtins.json` is the built-in module schema manifest.
+- `assets/js/modules/registry.js` is the generic browser runtime that loads and validates module definitions.
+- `index.html` references only the generic registry script, waits for `window.moduleRegistryReady`, and reads built-ins through `window.getBuiltInModuleDefinitions()`.
+- Per-module JavaScript definition files are not part of the v1 module system.
+- Future generated modules should use known element/action/schema types and be previewed before being applied.
+- Future backend work should use the protected Ourstuff Firebase API pattern for authenticated, rate-limited generation jobs.
+
+## Implementation Tasks
+
+- [x] Create `assets/modules/builtins.json` with the 14 built-in module definitions.
+- [x] Keep `assets/js/modules/registry.js` as the generic manifest loader.
+- [x] Remove the inline `moduleDefinitions` literal from `index.html`.
+- [x] Remove per-module script references from `index.html`.
+- [x] Start the app after `window.moduleRegistryReady` resolves so fetch timing does not drop built-ins.
+- [x] Remove obsolete per-module definition files under `assets/js/modules/`.
+- [x] Preserve `moduleHasSettings()` behavior for planner, calendar, and github.
+
+## Helper Assignment And Outcome
+
+- Planning helper: OpenCode with `opencode/mimo-v2.5-free`; retry succeeded and produced the schema-first plan.
+- Broad coding helper: OpenCode with `openrouter/openai/gpt-oss-120b:free`; timed out and left a partial registry manifest change.
+- Corrective helper: OpenCode with `openrouter/openai/gpt-oss-120b:free`; timed out but created `assets/modules/builtins.json`.
+- Orchestrator action: after free helpers failed, Codex made only the minimal repair needed to complete the manifest conversion and verify it.
+
+## Acceptance Criteria
+
+- All 14 built-in modules load from `assets/modules/builtins.json`.
+- `index.html` no longer contains per-module definitions or per-module script references.
+- Existing UI still sees the same module IDs, names, descriptions, visible data, controlled actions, and primary planner flag.
+- Existing custom modules still merge after built-ins.
+- GitHub settings/dashboard behavior remains wired.
+- No syntax errors in the registry or inline app script extraction.
+
+## Verification Evidence
+
+- `node --check assets/js/modules/registry.js`: pass.
+- Extracted inline app script to a temp file and ran `node --check`: pass.
+- Parsed `assets/modules/builtins.json`: 14 built-in IDs present.
+- Browser smoke loaded the static app over a local HTTP server with no console/page errors and saw all 14 registered module IDs after the obsolete module files were removed.
+- Existing module audit script still reports core module hooks present, but it does not yet understand manifest-backed built-ins and now misreports the built-in IDs as not detected.
+
+## Next Module Generator Work
+
+- [ ] Update or replace the module audit script so it validates `assets/modules/builtins.json`.
+- [ ] Define strict schema v1 element types such as `listbox`, `textbox`, `textbox_multi`, `select`, `toggle`, `number`, `date`, `textarea`, `section`, and `status`.
+- [x] Add AI module generation jobs through protected Ourstuff backend endpoints.
+- [x] Add New Module prompt UI, robot adjustment prompt, one active job per module, spinner/status polling, preview, apply, and cancel.
+- [ ] Wire full Firebase auth token acquisition in the static projects app instead of requiring manual localStorage bearer token setup.
+
 ## Mission
 
 Build a manual-first GitHub tracking module in the single-file static app. The GitHub module should store structured project repo settings, avoid tokens/API fields, persist through localStorage/export/import, and replace the placeholder dashboard with a compact readiness surface.

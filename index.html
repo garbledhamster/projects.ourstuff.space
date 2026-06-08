@@ -382,6 +382,75 @@
       scrollbar-width: thin;
     }
 
+    .topbar-ai-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .topbar-ai-indicator {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .topbar-ai-status.is-running .topbar-ai-indicator {
+      animation: ai-status-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes ai-status-pulse {
+      0%, 100% { opacity: 0.45; }
+      50% { opacity: 1; }
+    }
+
+    .module-builder-panel,
+    .module-builder-preview {
+      display: grid;
+      gap: var(--space-2);
+      margin: var(--space-2) 0;
+      padding: var(--space-3);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .module-builder-preview {
+      background: var(--chrome);
+    }
+
+    .module-builder-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .module-builder-status-line {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.86rem;
+    }
+
+    .module-builder-hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .module-builder-preview pre {
+      max-height: 180px;
+      overflow: auto;
+      margin: 0;
+      border: 1px solid var(--border);
+      padding: var(--space-2);
+      background: var(--chrome);
+      color: var(--text);
+      font: 12px var(--mono);
+    }
+
+    .module-builder-json-fallback {
+      border-top: 1px solid var(--border);
+      padding-top: var(--space-3);
+    }
+
     .project-list::-webkit-scrollbar,
     .detail-body::-webkit-scrollbar,
     .table-body::-webkit-scrollbar,
@@ -1172,6 +1241,34 @@
       gap: var(--space-3);
       color: var(--text-muted);
       font-size: 0.8rem;
+    }
+
+    .note-title {
+      margin: 0;
+      font-size: 0.94rem;
+      font-weight: 700;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+      color: var(--text);
+    }
+
+    .note-body-preview {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .note-edit-form {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .note-meta-actions {
+      display: flex;
+      gap: var(--space-2);
     }
 
     .phase-task-form {
@@ -2164,6 +2261,12 @@
           </div>
         </div>
         <div class="topbar-actions">
+          <span id="authStatusText" class="save-state" aria-live="polite">Signed out</span>
+          <button id="authButton" class="button secondary" type="button" data-action="auth-toggle">🔐 Sign in</button>
+          <button id="moduleBuilderStatusButton" class="button secondary topbar-ai-status" type="button" data-action="open-active-module-generation" aria-live="polite">
+            <span class="topbar-ai-indicator" aria-hidden="true">🤖</span>
+            <span id="moduleBuilderStatusText">AI builder idle</span>
+          </button>
           <button id="allProjectsButton" class="button secondary" type="button">📊 All projects</button>
           <button id="exportButton" class="button secondary" type="button">⬇️ Export data</button>
           <button id="importButton" class="button secondary" type="button">⬆️ Import data</button>
@@ -2280,12 +2383,25 @@
     </form>
   </dialog>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="assets/js/modules/registry.js"></script>
   <script>
-    (() => {
+    const startOurDashboard = () => {
       "use strict";
 
       const STORAGE_KEY = "ourdashboard.v1";
       const LAYOUT_KEY = `${STORAGE_KEY}.layout`;
+      const PROJECTS_AI_DEFAULT_URL = "https://us-central1-ourstuff-firebase.cloudfunctions.net/projectsAiApi";
+      const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyAbGQLNf5DaihauUnZhVA03TAQUO_6PwZk",
+        authDomain: "ourstuff-firebase.firebaseapp.com",
+        projectId: "ourstuff-firebase",
+        storageBucket: "ourstuff-firebase.firebasestorage.app",
+        messagingSenderId: "450756988196",
+        appId: "1:450756988196:web:89ee37877b306bbb1277b1",
+        measurementId: "G-JR0JC5Z47E"
+      };
 
       const statusLabels = {
         active: "Active",
@@ -2407,6 +2523,8 @@
         .replace(/(^-|-$)/g, "")
         .slice(0, 48);
 
+      const isPlainObject = (value) => Boolean(value && typeof value === "object" && !Array.isArray(value));
+
       const normalizeCustomModule = (module) => {
         const name = String(module?.name || "").trim();
         const id = slugifyModuleId(module?.id || name);
@@ -2414,8 +2532,9 @@
 
         const reserved = new Set(["overview", "phases", "tasks", "access", "notes", "planner"]);
         if (reserved.has(id)) return null;
+        if (["renderSettings", "renderPanel", "settingsRenderer", "panelRenderer", "script", "javascript", "code"].some((key) => module?.[key])) return null;
 
-        return {
+        const normalized = {
           id,
           icon: String(module.icon || "🧩").trim().slice(0, 4) || "🧩",
           name: name.slice(0, 80),
@@ -2424,123 +2543,22 @@
           controlledActions: String(module.controlledActions || "Custom selected actions.").trim().slice(0, 260),
           custom: true
         };
+
+        if (module.moduleSchemaVersion === "v1") normalized.moduleSchemaVersion = "v1";
+        if (isPlainObject(module.settingsSchema)) normalized.settingsSchema = module.settingsSchema;
+        if (isPlainObject(module.defaultSettings)) normalized.defaultSettings = module.defaultSettings;
+        if (module.generatedBy === "ai") normalized.generatedBy = "ai";
+        if (module.generatorPrompt) normalized.generatorPrompt = String(module.generatorPrompt).slice(0, 600);
+
+        return normalized;
       };
 
-      const moduleDefinitions = [
-        {
-          id: "planner",
-          icon: "📋",
-          name: "Planner",
-          desc: "Connect this project to a planning backend and map OurDashboard project structure to that system.",
-          visibleData: "Plans, boards, buckets, tasks, assignments, due dates, labels, status.",
-          controlledActions: "Convert OurDashboard phases/tasks into the backend planner structure and sync selected task changes.",
-          primary: true
-        },
-        {
-          id: "calendar",
-          icon: "🗓️",
-          name: "Calendar",
-          desc: "Connect project dates, meetings, reminders, and delivery checkpoints.",
-          visibleData: "Calendars, events, attendees, reminders, deadlines, recurring meetings.",
-          controlledActions: "Create/read selected events and attach milestones to project phases."
-        },
-        {
-          id: "gantt",
-          icon: "📈",
-          name: "Gantt",
-          desc: "See project phases and task timing as a schedule view.",
-          visibleData: "Phase windows, task dates, dependencies, slippage, critical path notes.",
-          controlledActions: "Create/update selected schedule records and map phase timing."
-        },
-        {
-          id: "kanban",
-          icon: "🧱",
-          name: "Kanban",
-          desc: "View project work as columns and work-in-progress lanes.",
-          visibleData: "Task status, lane, owner, blocked items, work-in-progress.",
-          controlledActions: "Move selected tasks between lanes and update status."
-        },
-        {
-          id: "risks",
-          icon: "🚦",
-          name: "Risks",
-          desc: "Track risks, blockers, mitigations, and decision pressure.",
-          visibleData: "Risks, severity, likelihood, owner, mitigation status.",
-          controlledActions: "Create/update selected risk records and attach them to phases."
-        },
-        {
-          id: "decisions",
-          icon: "🧾",
-          name: "Decisions",
-          desc: "Record project decisions and why they were made.",
-          visibleData: "Decisions, rationale, approvers, dates, source notes.",
-          controlledActions: "Promote notes into decisions and link decisions to phases."
-        },
-        {
-          id: "users",
-          icon: "👥",
-          name: "Users",
-          desc: "See all users who have been associated with this project.",
-          visibleData: "Owners, contributors, reviewers, stakeholders, permissions.",
-          controlledActions: "Assign roles, mark owners, connect users to modules."
-        },
-        {
-          id: "cloudflare",
-          icon: "☁️",
-          name: "Cloudflare",
-          desc: "See Cloudflare resources associated with this project.",
-          visibleData: "Domains, DNS records, Workers, Pages, D1, KV, routes.",
-          controlledActions: "Create/read selected DNS, deployment, and Worker metadata."
-        },
-        {
-          id: "firebase",
-          icon: "🔥",
-          name: "Firebase",
-          desc: "See Firebase systems for this project.",
-          visibleData: "Apps, Auth, Firestore, Storage, Functions, hosting targets.",
-          controlledActions: "Read/write selected project config and deployment records."
-        },
-        {
-          id: "github",
-          icon: "🐙",
-          name: "GitHub",
-          desc: "See repo data, GitHub Pages status, issues, and project activity.",
-          visibleData: "Repos, branches, issues, PRs, deployments, Pages status.",
-          controlledActions: "Create issues, update labels, link commits, read deployment state."
-        },
-        {
-          id: "stripe",
-          icon: "💳",
-          name: "Stripe",
-          desc: "See Stripe data related to this project.",
-          visibleData: "Products, prices, subscriptions, customers, webhooks.",
-          controlledActions: "Read selected billing objects and map them to project records."
-        },
-        {
-          id: "files",
-          icon: "📁",
-          name: "Files",
-          desc: "See relevant files on your local system for this project.",
-          visibleData: "Local folders, docs, exports, specs, screenshots, artifacts.",
-          controlledActions: "Open, index, tag, and attach selected local files."
-        },
-        {
-          id: "mcp",
-          icon: "🔌",
-          name: "MCP",
-          desc: "See MCP endpoint actions available for this project.",
-          visibleData: "Servers, tools, actions, schemas, permissions, health checks.",
-          controlledActions: "Run selected safe actions and record outputs."
-        },
-        {
-          id: "ourbrain",
-          icon: "🧠",
-          name: "OurBrain",
-          desc: "See relevant AI brain memories connected to this project.",
-          visibleData: "Memories, summaries, decisions, source references, embeddings.",
-          controlledActions: "Attach, update, distill, and retrieve selected memory records."
-        }
-      ];
+      const getBuiltInModuleDefinitions = () => {
+        const definitions = typeof window.getBuiltInModuleDefinitions === "function"
+          ? window.getBuiltInModuleDefinitions()
+          : [];
+        return Array.isArray(definitions) ? definitions : [];
+      };
 
       const state = {
         projects: [],
@@ -2560,7 +2578,14 @@
         settingsTab: "access",
         saveStatus: "",
         storageAvailable: true,
-        appSettings: null
+        appSettings: null,
+        editingNoteId: null,
+        moduleGeneration: null,
+        authSession: {
+          initialized: false,
+          user: null,
+          error: ""
+        }
       };
 
       const els = {
@@ -2583,7 +2608,111 @@
         createProjectButton: document.getElementById("createProjectButton"),
         exportButton: document.getElementById("exportButton"),
         importButton: document.getElementById("importButton"),
-        importFile: document.getElementById("importFile")
+        importFile: document.getElementById("importFile"),
+        authStatusText: document.getElementById("authStatusText"),
+        authButton: document.getElementById("authButton"),
+        moduleBuilderStatusButton: document.getElementById("moduleBuilderStatusButton"),
+        moduleBuilderStatusText: document.getElementById("moduleBuilderStatusText")
+      };
+
+      let projectsFirebaseApp = null;
+      let projectsFirebaseAuth = null;
+
+      const projectsAuthLabel = () => {
+        if (state.authSession.error) return "Auth unavailable";
+        const email = String(state.authSession.user?.email || "").trim();
+        if (email) return email;
+        if (state.authSession.user) return "Signed in";
+        return "Signed out";
+      };
+
+      const trustedProjectsApiUrl = (rawUrl) => {
+        const value = String(rawUrl || "").trim();
+        if (!value) return false;
+        try {
+          const parsed = new URL(value);
+          const host = parsed.hostname.toLowerCase();
+          return (
+            parsed.origin === "https://us-central1-ourstuff-firebase.cloudfunctions.net" ||
+            parsed.origin === "https://api.ourstuff.space" ||
+            host === "projects.ourstuff.space" ||
+            host === "ourstuff.space" ||
+            host.endsWith(".ourstuff.space") ||
+            host === "localhost" ||
+            host === "127.0.0.1"
+          );
+        } catch {
+          return false;
+        }
+      };
+
+      const initProjectsFirebaseAuth = () => {
+        if (projectsFirebaseAuth || !window.firebase?.auth || !window.firebase?.initializeApp) return;
+        try {
+          projectsFirebaseApp = window.firebase.apps?.length
+            ? window.firebase.app()
+            : window.firebase.initializeApp(FIREBASE_CONFIG, "projects-ourstuff-space");
+          projectsFirebaseAuth = window.firebase.auth(projectsFirebaseApp);
+          projectsFirebaseAuth.onAuthStateChanged((user) => {
+            state.authSession.initialized = true;
+            state.authSession.user = user || null;
+            state.authSession.error = "";
+            render();
+          });
+        } catch (error) {
+          state.authSession.initialized = true;
+          state.authSession.user = null;
+          state.authSession.error = error?.message || "Firebase Auth failed to initialize.";
+          render();
+        }
+      };
+
+      const ensureSignedInToken = async () => {
+        initProjectsFirebaseAuth();
+        if (state.authSession.error) {
+          return { ok: false, message: state.authSession.error };
+        }
+        if (!state.authSession.initialized) {
+          return { ok: false, message: "Initializing sign-in...", needsAuth: true };
+        }
+        if (!projectsFirebaseAuth?.currentUser) {
+          return { ok: false, message: "Sign in to generate modules with Projects AI.", needsAuth: true };
+        }
+        try {
+          const token = await projectsFirebaseAuth.currentUser.getIdToken();
+          if (!token) return { ok: false, message: "Could not get auth token." };
+          return { ok: true, token };
+        } catch (error) {
+          return { ok: false, message: error?.message || "Could not get auth token." };
+        }
+      };
+
+      const signInProjectsAuth = async () => {
+        initProjectsFirebaseAuth();
+        if (!projectsFirebaseAuth) {
+          state.saveStatus = "Firebase Auth is not available.";
+          render();
+          return;
+        }
+        try {
+          const provider = new window.firebase.auth.GoogleAuthProvider();
+          await projectsFirebaseAuth.signInWithPopup(provider);
+          state.saveStatus = "Signed in.";
+        } catch (error) {
+          state.saveStatus = error?.message || "Sign-in failed.";
+        }
+        render();
+      };
+
+      const signOutProjectsAuth = async () => {
+        if (!projectsFirebaseAuth) return;
+        try {
+          await projectsFirebaseAuth.signOut();
+          state.saveStatus = "Signed out.";
+        } catch (error) {
+          state.saveStatus = error?.message || "Sign-out failed.";
+        }
+        render();
       };
 
       const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -2767,10 +2896,15 @@
       const normalizeNote = (note) => {
         const body = String(note.body || "").trim();
         if (!body) return null;
+        const firstLine = body.split("\n").find(l => l.trim()) || "";
+        const title = String(note.title || "").trim() || firstLine.slice(0, 80);
+        const createdAt = note.createdAt || now();
         return {
           id: note.id || uid(),
+          title,
           body,
-          createdAt: note.createdAt || now()
+          createdAt,
+          updatedAt: note.updatedAt || createdAt
         };
       };
 
@@ -2786,7 +2920,7 @@
           ? settings.customModules.map(normalizeCustomModule).filter(Boolean)
           : [];
 
-        const seen = new Set(moduleDefinitions.map((module) => module.id));
+        const seen = new Set(getBuiltInModuleDefinitions().map((module) => module.id));
         const uniqueCustomModules = customModules.filter((module) => {
           if (seen.has(module.id)) return false;
           seen.add(module.id);
@@ -2807,16 +2941,60 @@
             issuerUrl: String(settings.directory?.issuerUrl || "").trim(),
             clientId: String(settings.directory?.clientId || "").trim()
           },
+          aiModuleApiUrl: String(settings.aiModuleApiUrl || settings.aiApiUrl || "").trim().slice(0, 500),
           customModules: uniqueCustomModules
         };
       };
 
       const getModuleDefinitions = () => {
         const settings = state.appSettings ? normalizeAppSettings(state.appSettings) : normalizeAppSettings({});
-        return [...moduleDefinitions, ...settings.customModules];
+        const builtInModules = getBuiltInModuleDefinitions();
+        return [...builtInModules, ...settings.customModules];
       };
 
-      const moduleHasSettings = (moduleId) => ["planner", "calendar", "github"].includes(moduleId);
+      const moduleHasSettings = (moduleId) => {
+        if (!moduleId) return false;
+        return true;
+      };
+
+      const normalizeModuleGenerationRuntime = (raw = {}) => {
+        const runtime = isPlainObject(raw) ? raw : {};
+        const status = ["idle", "queued", "running", "done", "failed", "cancelled"].includes(runtime.status)
+          ? runtime.status
+          : "idle";
+        const normalized = {
+          projectId: String(runtime.projectId || "").trim(),
+          requestedModuleId: String(runtime.requestedModuleId || "").trim(),
+          outputModuleId: String(runtime.outputModuleId || "").trim(),
+          prompt: String(runtime.prompt || "").trim().slice(0, 1200),
+          status,
+          message: String(runtime.message || "").trim().slice(0, 800),
+          jobId: String(runtime.jobId || "").trim().slice(0, 220),
+          draftResult: runtime.draftResult && typeof runtime.draftResult === "object" ? runtime.draftResult : null,
+          startedAt: String(runtime.startedAt || "").trim(),
+          updatedAt: String(runtime.updatedAt || "").trim(),
+          blockedMessage: String(runtime.blockedMessage || "").trim().slice(0, 500)
+        };
+        const hasIdentity = normalized.projectId && normalized.requestedModuleId;
+        if (!hasIdentity) normalized.status = "idle";
+        return normalized;
+      };
+
+      const resolveModuleGenerationState = () => {
+        state.moduleGeneration = normalizeModuleGenerationRuntime(state.moduleGeneration);
+        return state.moduleGeneration;
+      };
+
+      const getActiveModuleGenerationJob = () => {
+        const runtime = resolveModuleGenerationState();
+        if (runtime.status === "idle" || !runtime.projectId || !runtime.requestedModuleId) return null;
+        return runtime;
+      };
+
+      const isModuleGenerationRunning = () => {
+        const runtime = getActiveModuleGenerationJob();
+        return Boolean(runtime && (runtime.status === "queued" || runtime.status === "running"));
+      };
 
       const normalizeIntegrations = (integrations = {}) => ({
         planner: {
@@ -3116,6 +3294,7 @@
             state.selectedId = null;
             state.workspace = "table";
             state.appSettings = normalizeAppSettings({});
+            state.moduleGeneration = normalizeModuleGenerationRuntime({});
             return;
           }
 
@@ -3128,12 +3307,14 @@
             ? parsed.selectedId
             : state.projects[0]?.id || null;
           state.workspace = state.selectedId ? "project" : "table";
+          state.moduleGeneration = normalizeModuleGenerationRuntime(parsed.moduleGeneration || parsed.moduleGenerationState || {});
         } catch (error) {
           state.storageAvailable = false;
           state.projects = [];
           state.selectedId = null;
           state.workspace = "table";
           state.appSettings = normalizeAppSettings({});
+          state.moduleGeneration = normalizeModuleGenerationRuntime({});
           showStorageError("Local storage is not available. You can still use the dashboard during this session, but changes may not persist.");
         }
       };
@@ -3154,10 +3335,12 @@
         }
 
         try {
+          resolveModuleGenerationState();
           window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
             projects: state.projects,
             selectedId: state.selectedId,
             appSettings: state.appSettings,
+            moduleGeneration: state.moduleGeneration,
             version: 1
           }));
           updateSaveStatus(message);
@@ -3492,10 +3675,57 @@
       };
 
       const render = () => {
+        renderAuthStatus();
+        renderModuleGenerationTopbarStatus();
         renderSummary();
         renderFilters();
         renderProjectList();
         renderWorkspace();
+      };
+
+      const renderAuthStatus = () => {
+        if (els.authStatusText) {
+          els.authStatusText.textContent = projectsAuthLabel();
+        }
+        if (els.authButton) {
+          const signedIn = Boolean(state.authSession.user);
+          els.authButton.textContent = signedIn ? "🚪 Sign out" : "🔐 Sign in";
+          els.authButton.setAttribute("aria-label", signedIn ? "Sign out of Projects AI" : "Sign in to Projects AI");
+        }
+      };
+
+      const moduleGenerationStatusLabel = (status) => {
+        if (status === "queued") return "Queued";
+        if (status === "running") return "Running";
+        if (status === "done") return "Done";
+        if (status === "failed") return "Failed";
+        if (status === "cancelled") return "Cancelled";
+        return "Idle";
+      };
+
+      const renderModuleGenerationTopbarStatus = () => {
+        if (!els.moduleBuilderStatusButton || !els.moduleBuilderStatusText) return;
+        const active = getActiveModuleGenerationJob();
+        const running = active && (active.status === "queued" || active.status === "running");
+        const scope = active
+          ? active.requestedModuleId === "__new__"
+            ? "new module"
+            : `module ${active.requestedModuleId}`
+          : "";
+        const statusLabel = active ? moduleGenerationStatusLabel(active.status) : "Idle";
+        const text = !active
+          ? "AI builder idle"
+          : `AI builder ${scope ? `${scope} is` : ""} ${statusLabel.toLowerCase()}`;
+        els.moduleBuilderStatusText.textContent = text;
+        els.moduleBuilderStatusButton.classList.toggle("is-running", running);
+        if (running) {
+          els.moduleBuilderStatusButton.setAttribute("title", "AI builder is active and running in background.");
+        } else {
+          els.moduleBuilderStatusButton.removeAttribute("title");
+        }
+        els.moduleBuilderStatusButton.setAttribute("aria-label", active
+          ? `Open active AI builder job for ${active.requestedModuleId === "__new__" ? "new module" : active.requestedModuleId}. Status ${moduleGenerationStatusLabel(active.status)}.`
+          : "No active AI builder job.");
       };
 
       const renderSummary = () => {
@@ -3752,7 +3982,7 @@
               <p>Authentication, user access, directory connection, and federation scaffolding.</p>
             </div>
             <div class="table-actions">
-              <button class="button secondary" type="button" data-action="show-sign-in-placeholder">🔐 Sign in</button>
+              <button class="button secondary" type="button" data-action="auth-toggle">${state.authSession.user ? "🚪 Sign out" : "🔐 Sign in"}</button>
             </div>
           </div>
           ${renderSettingsTabs()}
@@ -3844,6 +4074,7 @@
 
       const renderProjectNav = (project) => {
         const openTasks = project.tasks.filter((task) => !task.done).length;
+        const activeGeneration = getActiveModuleGenerationJob();
         const enabledModules = getModuleDefinitions()
           .filter((module) => project.modules?.[module.id]?.enabled)
           .map((module) => ({
@@ -3853,12 +4084,21 @@
             description: module.desc,
             count: ""
           }));
+        const includeBuilderTab = Boolean(
+          activeGeneration
+          && activeGeneration.projectId === project.id
+          && activeGeneration.requestedModuleId === "__new__"
+        );
+        const builderTab = includeBuilderTab
+          ? [{ id: "module-builder", label: "Builder", icon: "🤖", description: "AI module generation status and controls", count: "" }]
+          : [];
 
         const tabs = [
           { id: "overview", label: "Overview", icon: "📌", description: "Goal, status, stage, and next action", count: "" },
           { id: "phases", label: "Phases", icon: "🧩", description: "Project phases and phase-owned work", count: project.phases.length },
           { id: "tasks", label: "Tasks", icon: "☑️", description: "All project tasks grouped by phase", count: openTasks },
           { id: "notes", label: "Notes", icon: "📝", description: "Context and decisions", count: project.notes.length },
+          ...builderTab,
           ...enabledModules
         ];
 
@@ -4088,7 +4328,9 @@
               </div>
 
               <form class="section" data-action="add-note" data-project-id="${project.id}">
-                <label class="sr-only" for="noteInput">New note</label>
+                <label class="sr-only" for="noteTitleInput">Note title</label>
+                <input id="noteTitleInput" class="input" name="title" maxlength="120" placeholder="Title (optional)" />
+                <label class="sr-only" for="noteInput">Note body</label>
                 <textarea id="noteInput" class="textarea" name="body" maxlength="1600" placeholder="Add a note"></textarea>
                 <div>
                   <button class="button secondary" type="submit">➕ Add note</button>
@@ -4102,15 +4344,42 @@
                 </div>
               ` : `
                 <ul class="note-list">
-                  ${[...project.notes].reverse().map((note) => `
-                    <li class="note-item">
-                      <p class="note-content">${escapeHtml(note.body)}</p>
-                      <div class="note-meta">
-                        <span>🕒 ${formatDate(note.createdAt)}</span>
-                        <button class="button ghost small" type="button" data-action="delete-note" data-project-id="${project.id}" data-note-id="${note.id}">🗑️ Delete</button>
-                      </div>
-                    </li>
-                  `).join("")}
+                  ${[...project.notes].reverse().map((note) => {
+                    const isEditing = state.editingNoteId === note.id;
+                    const updatedLine = note.updatedAt && note.updatedAt !== note.createdAt
+                      ? `<span>✏️ ${formatDate(note.updatedAt)}</span>` : "";
+                    if (isEditing) {
+                      return `
+                        <li class="note-item">
+                          <form class="note-edit-form" data-action="update-note" data-project-id="${project.id}" data-note-id="${note.id}">
+                            <label class="sr-only" for="editNoteTitle_${note.id}">Title</label>
+                            <input id="editNoteTitle_${note.id}" class="input" name="title" maxlength="120" value="${escapeHtml(note.title || "")}" placeholder="Title (optional)" />
+                            <label class="sr-only" for="editNoteBody_${note.id}">Body</label>
+                            <textarea id="editNoteBody_${note.id}" class="textarea" name="body" maxlength="1600">${escapeHtml(note.body)}</textarea>
+                            <div class="note-meta">
+                              <div class="note-meta-actions">
+                                <button class="button primary small" type="submit">💾 Save</button>
+                                <button class="button ghost small" type="button" data-action="cancel-edit-note">✕ Cancel</button>
+                              </div>
+                            </div>
+                          </form>
+                        </li>
+                      `;
+                    }
+                    return `
+                      <li class="note-item">
+                        ${note.title ? `<p class="note-title">${escapeHtml(note.title)}</p>` : ""}
+                        <p class="note-body-preview">${escapeHtml(note.body)}</p>
+                        <div class="note-meta">
+                          <span>🕒 ${formatDate(note.createdAt)}${updatedLine ? ` &nbsp;${updatedLine}` : ""}</span>
+                          <div class="note-meta-actions">
+                            <button class="button ghost small" type="button" data-action="edit-note" data-project-id="${project.id}" data-note-id="${note.id}">✏️ Edit</button>
+                            <button class="button ghost small" type="button" data-action="delete-note" data-project-id="${project.id}" data-note-id="${note.id}">🗑️ Delete</button>
+                          </div>
+                        </div>
+                      </li>
+                    `;
+                  }).join("")}
                 </ul>
               `}
             </section>
@@ -4469,14 +4738,146 @@
         `;
       };
 
+      const moduleGenerationApiUrl = () => {
+        const configuredUrl = state.appSettings?.aiModuleApiUrl || state.appSettings?.aiApiUrl || localStorage.getItem("ourstuff.aiModuleApiUrl") || localStorage.getItem("aiModuleApiUrl") || "";
+        if (configuredUrl && trustedProjectsApiUrl(configuredUrl)) return configuredUrl;
+        return PROJECTS_AI_DEFAULT_URL;
+      };
+
+      const containsExecutableFields = (value, keyName = "") => {
+        if (typeof value === "function") return true;
+        const normalizedKey = String(keyName || "").toLowerCase();
+        if (["script", "javascript", "code", "rendersettings", "renderpanel", "settingsrenderer", "panelrenderer"].includes(normalizedKey)) {
+          return value !== null && value !== "";
+        }
+        if (!value || typeof value !== "object") return false;
+        if (Array.isArray(value)) return value.some((item) => containsExecutableFields(item));
+        return Object.entries(value).some(([key, item]) => containsExecutableFields(item, key));
+      };
+
+      const sanitizeGeneratedModule = (raw) => {
+        if (!raw || typeof raw !== "object") return null;
+        if (containsExecutableFields(raw)) return null;
+        const allowedTopLevel = new Set([
+          "id",
+          "icon",
+          "name",
+          "desc",
+          "visibleData",
+          "controlledActions",
+          "primary",
+          "settingsSchema",
+          "defaultSettings",
+          "moduleSchemaVersion",
+          "generatedBy",
+          "generatorPrompt"
+        ]);
+        const out = { moduleSchemaVersion: "v1" };
+        Object.keys(raw).forEach((key) => {
+          if (!allowedTopLevel.has(key)) return;
+          const value = raw[key];
+          if (typeof value === "function") return;
+          out[key] = value;
+        });
+        if (!out.id || typeof out.id !== "string") return null;
+        out.id = slugifyModuleId(out.id);
+        if (!out.id) return null;
+        if (typeof getBuiltInModuleDefinition === "function" && getBuiltInModuleDefinition(out.id)) return null;
+        out.settingsSchema = isPlainObject(out.settingsSchema) ? out.settingsSchema : {};
+        out.defaultSettings = isPlainObject(out.defaultSettings) ? out.defaultSettings : {};
+        out.moduleSchemaVersion = "v1";
+        out.generatedBy = "ai";
+        if (out.generatorPrompt) out.generatorPrompt = String(out.generatorPrompt).slice(0, 600);
+        return out;
+      };
+
+      const moduleGenerationStatusBadgeClass = (status) => {
+        if (status === "done") return "active";
+        if (status === "failed") return "stuck";
+        if (status === "queued" || status === "running") return "paused";
+        return "";
+      };
+
+      const summarizePrompt = (prompt) => {
+        const text = String(prompt || "").trim().replace(/\s+/g, " ");
+        if (text.length <= 160) return text;
+        return `${text.slice(0, 157)}...`;
+      };
+
+      const renderModuleGenerationPreview = (runtime) => {
+        if (!runtime?.draftResult) return "";
+        return `
+          <section class="module-builder-preview" aria-label="Generated module preview">
+            <details>
+              <summary>Preview generated module JSON</summary>
+              <pre><code>${escapeHtml(JSON.stringify(runtime.draftResult, null, 2))}</code></pre>
+            </details>
+          </section>
+        `;
+      };
+
+      const renderModuleGenerationStatus = (runtime, opts = {}) => {
+        if (!runtime || runtime.status === "idle") return "";
+        const showCancel = runtime.status === "queued" || runtime.status === "running" || runtime.status === "failed" || runtime.status === "done";
+        const scopeLabel = opts.scopeLabel || "module";
+        return `
+          <section class="module-builder-panel" aria-label="AI module generation status">
+            <div class="module-actions">
+              <span class="badge ${moduleGenerationStatusBadgeClass(runtime.status)}">${moduleGenerationStatusLabel(runtime.status)}</span>
+              ${runtime.requestedModuleId === "__new__" ? "<span class=\"badge\">New module</span>" : `<span class="badge">Target: ${escapeHtml(runtime.requestedModuleId)}</span>`}
+              ${runtime.outputModuleId ? `<span class="badge">Output: ${escapeHtml(runtime.outputModuleId)}</span>` : ""}
+            </div>
+            <p class="module-builder-status-line">${escapeHtml(runtime.message || `${scopeLabel} generation ${moduleGenerationStatusLabel(runtime.status).toLowerCase()}.`)}</p>
+            ${runtime.prompt ? `<p class="module-builder-hint"><strong>Prompt:</strong> ${escapeHtml(summarizePrompt(runtime.prompt))}</p>` : ""}
+            <div class="module-builder-actions">
+              ${runtime.jobId ? `<button class="button secondary small" type="button" data-action="check-module-generation">Check status</button>` : ""}
+              ${showCancel ? `<button class="button ghost small" type="button" data-action="cancel-module-generation">Clear</button>` : ""}
+            </div>
+          </section>
+          ${renderModuleGenerationPreview(runtime)}
+        `;
+      };
+
+      const renderModuleGenerationPromptForm = (project, targetModuleId, action) => {
+        const runtime = getActiveModuleGenerationJob();
+        const hasRunningElsewhere = runtime
+          && (runtime.status === "queued" || runtime.status === "running")
+          && (runtime.projectId !== project.id || runtime.requestedModuleId !== targetModuleId);
+        const defaultPrompt = runtime && runtime.projectId === project.id && runtime.requestedModuleId === targetModuleId
+          ? runtime.prompt
+          : "";
+        return `
+          <form class="module-builder-panel" data-action="${action}" data-project-id="${project.id}" data-module-id="${targetModuleId}">
+            <div>
+              <label for="modulePrompt-${safeDomId(project.id)}-${safeDomId(targetModuleId)}">${targetModuleId === "__new__" ? "Describe the new module" : "Describe your adjustment"}</label>
+              <textarea id="modulePrompt-${safeDomId(project.id)}-${safeDomId(targetModuleId)}" class="textarea" name="prompt" maxlength="1200" placeholder="${targetModuleId === "__new__" ? "Example: Build a Vendor Health module with renewals, support links, and owner status." : "Example: Add renewal risk badges, richer metadata, and clearer action controls."}">${escapeHtml(defaultPrompt)}</textarea>
+            </div>
+            <div class="module-builder-actions">
+              <button class="button primary small" type="submit" ${hasRunningElsewhere ? "disabled" : ""}>${targetModuleId === "__new__" ? "Generate module" : "Generate adjustment"}</button>
+            </div>
+            ${hasRunningElsewhere ? `<p class="module-builder-hint">Another module generation job is already active. Open it from the top bar first.</p>` : ""}
+          </form>
+        `;
+      };
+
       const renderModuleSettings = (project, module) => {
         const record = project.modules?.[module.id] || normalizeModules({}, project.integrations)[module.id];
         const settings = record.settings || {};
         const secretSaved = Boolean(record.secretVault);
-        const configured = Boolean(record.configured);
+        const runtime = getActiveModuleGenerationJob();
+        const runtimeForModule = runtime && runtime.projectId === project.id && (runtime.requestedModuleId === module.id || runtime.outputModuleId === module.id)
+          ? runtime
+          : null;
 
         if (module.id === "github") {
-          return renderGitHubSettings(project, module, record);
+          return `${renderGitHubSettings(project, module, record)}${renderModuleGenerationPromptForm(project, module.id, "generate-module-adjustment")}${renderModuleGenerationStatus(runtimeForModule, { scopeLabel: module.name })}`;
+        }
+
+        if (!["planner", "calendar"].includes(module.id)) {
+          return `
+            ${renderModuleGenerationPromptForm(project, module.id, "generate-module-adjustment")}
+            ${renderModuleGenerationStatus(runtimeForModule, { scopeLabel: module.name })}
+          `;
         }
 
         const plannerProfile = module.id === "planner"
@@ -4565,10 +4966,16 @@
               <button class="button secondary small" type="submit">💾 Save settings</button>
             </div>
           </form>
+          ${renderModuleGenerationPromptForm(project, module.id, "generate-module-adjustment")}
+          ${renderModuleGenerationStatus(runtimeForModule, { scopeLabel: module.name })}
         `;
       };
 
       const renderNewModuleInstaller = (project) => {
+        const runtime = getActiveModuleGenerationJob();
+        const runtimeForNewModule = runtime && runtime.projectId === project.id && runtime.requestedModuleId === "__new__"
+          ? runtime
+          : null;
         const sample = `{
   "id": "vendor-health",
   "icon": "🧰",
@@ -4579,10 +4986,19 @@
 }`;
 
         return `
-          <form class="module-installer" data-action="install-custom-module" data-project-id="${project.id}">
+          <section class="module-installer">
             <div>
               <h3>➕ New module</h3>
-              <p class="module-caption">Paste a simple moduleizer JSON object. ChatGPT can generate this object for a new module, and OurDashboard will install it locally.</p>
+              <p class="module-caption">Use AI Builder for a fast draft, or use JSON below for manual/advanced installs.</p>
+            </div>
+            ${renderModuleGenerationPromptForm(project, "__new__", "generate-new-module")}
+            ${renderModuleGenerationStatus(runtimeForNewModule, { scopeLabel: "New module" })}
+          </section>
+
+          <form class="module-installer module-builder-json-fallback" data-action="install-custom-module" data-project-id="${project.id}">
+            <div>
+              <h3>🧾 Manual JSON fallback</h3>
+              <p class="module-caption">Advanced/manual path. Paste a moduleizer JSON object to install directly.</p>
             </div>
 
             <div class="field">
@@ -4720,6 +5136,34 @@
         `;
       };
 
+      const renderModuleGenerationWorkspacePanel = (project, module = null) => {
+        const runtime = getActiveModuleGenerationJob();
+        if (!runtime || runtime.projectId !== project.id) {
+          return `
+            <section id="panel-module-builder" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-builder">
+              <section class="console-empty">
+                <h3>🤖 No active AI builder job</h3>
+                <p>Open Modules, then use the prompt in New module or Module settings to start generation.</p>
+              </section>
+            </section>
+          `;
+        }
+        const heading = module ? `${module.icon} ${module.name} under construction` : "🤖 AI module builder";
+        return `
+          <section id="panel-module-builder" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-builder">
+            <section class="integration-panel">
+              <div class="integration-panel-head">
+                <div class="integration-panel-title">
+                  <h3>${escapeHtml(heading)}</h3>
+                  <p>Generation runs in the background. This panel tracks progress and gives direct control.</p>
+                </div>
+              </div>
+              ${renderModuleGenerationStatus(runtime, { scopeLabel: module?.name || "Module" })}
+            </section>
+          </section>
+        `;
+      };
+
       const renderGitHubModulePanel = (project, module) => {
         const record = project.modules?.github || normalizeModules({}, project.integrations).github;
         const settings = defaultGitHubSettings(record.settings || {});
@@ -4832,6 +5276,24 @@
         if (!module || !project.modules?.[module.id]?.enabled) {
           state.projectTab = "overview";
           return renderOverviewPanel(project);
+        }
+        const runtime = getActiveModuleGenerationJob();
+        if (runtime && runtime.projectId === project.id && (runtime.requestedModuleId === moduleId || runtime.outputModuleId === moduleId)) {
+          if (runtime.status === "queued" || runtime.status === "running") {
+            return `
+              <section id="panel-module-${module.id}" class="tab-panel" role="tabpanel" aria-labelledby="tab-module-${module.id}">
+                <section class="integration-panel">
+                  <div class="integration-panel-head">
+                    <div class="integration-panel-title">
+                      <h3>🤖 ${escapeHtml(module.name)} under construction</h3>
+                      <p>AI is writing this module in background and will connect automatically when complete.</p>
+                    </div>
+                  </div>
+                  ${renderModuleSettings(project, module)}
+                </section>
+              </section>
+            `;
+          }
         }
         if (module.id === "planner") return renderPlannerModulePanel(project, module);
         if (module.id === "github") return renderGitHubModulePanel(project, module);
@@ -4962,6 +5424,7 @@
       };
 
       const renderActiveProjectPanel = (project) => {
+        if (state.projectTab === "module-builder") return renderModuleGenerationWorkspacePanel(project, null);
         if (state.projectTab.startsWith("module:")) return renderModulePanel(project, state.projectTab.slice("module:".length));
         if (state.projectTab === "phases") return renderPhasesPanel(project);
         if (state.projectTab === "tasks") return renderTasksPanel(project);
@@ -5081,6 +5544,7 @@
           state.projects = normalized;
           state.selectedId = normalized[0]?.id || null;
           state.appSettings = normalizeAppSettings(parsed.appSettings);
+          state.moduleGeneration = normalizeModuleGenerationRuntime(parsed.moduleGeneration || parsed.moduleGenerationState || {});
           state.workspace = state.selectedId ? "project" : "table";
           persist("Imported");
         } catch (error) {
@@ -5242,10 +5706,61 @@
           return;
         }
 
+        if (action === "auth-toggle" || action === "show-sign-in-placeholder") {
+          if (state.authSession.user) {
+            signOutProjectsAuth();
+          } else {
+            signInProjectsAuth();
+          }
+          return;
+        }
+
         if (action === "switch-project-tab") {
           state.projectTab = target.dataset.tab || "overview";
           state.saveStatus = "";
           renderWorkspace();
+          return;
+        }
+
+        if (action === "open-active-module-generation") {
+          const runtime = getActiveModuleGenerationJob();
+          if (!runtime) {
+            state.saveStatus = "No active AI module generation job.";
+            render();
+            return;
+          }
+          const targetProject = state.projects.find((item) => item.id === runtime.projectId);
+          if (!targetProject) {
+            state.saveStatus = "Active generation target project was not found.";
+            state.moduleGeneration = normalizeModuleGenerationRuntime({});
+            persist("Module generation cleared");
+            return;
+          }
+          state.selectedId = targetProject.id;
+          state.workspace = "project";
+          state.modulesOpen = false;
+          if (runtime.requestedModuleId === "__new__") {
+            state.projectTab = "module-builder";
+          } else if (runtime.outputModuleId && targetProject.modules?.[runtime.outputModuleId]?.enabled) {
+            state.projectTab = `module:${runtime.outputModuleId}`;
+          } else if (runtime.requestedModuleId) {
+            state.projectTab = `module:${runtime.requestedModuleId}`;
+          } else {
+            state.projectTab = "module-builder";
+          }
+          persist("Selected");
+          return;
+        }
+
+        if (action === "check-module-generation") {
+          const runtime = getActiveModuleGenerationJob();
+          if (!runtime?.jobId) return;
+          pollModuleGenerationJob(runtime.jobId);
+          return;
+        }
+
+        if (action === "cancel-module-generation") {
+          clearModuleGenerationJob("Generated module job cleared.");
           return;
         }
 
@@ -5459,6 +5974,18 @@
           return;
         }
 
+        if (action === "edit-note") {
+          state.editingNoteId = target.dataset.noteId;
+          render();
+          return;
+        }
+
+        if (action === "cancel-edit-note") {
+          state.editingNoteId = null;
+          render();
+          return;
+        }
+
         if (action === "export-project") {
           const project = state.projects.find((item) => item.id === target.dataset.projectId);
           if (!project) return;
@@ -5508,11 +6035,9 @@
           project.modules[moduleId].configured = target.checked && moduleId === "github"
             ? isGitHubConfigured(project.modules[moduleId].settings)
             : false;
-          const openingSettings = target.checked && moduleHasSettings(moduleId);
-          state.openModuleSettings = openingSettings
-            ? moduleId
-            : state.openModuleSettings === moduleId ? null : state.openModuleSettings;
-          if (openingSettings) queueModuleSettingsScroll(moduleId);
+          if (!target.checked && state.openModuleSettings === moduleId) {
+            state.openModuleSettings = null;
+          }
           if (!target.checked && state.projectTab === `module:${moduleId}`) {
             state.projectTab = "overview";
           }
@@ -5572,7 +6097,7 @@
           }
 
           const module = normalizeCustomModule(parsed);
-          if (!module || moduleDefinitions.some((item) => item.id === module.id)) {
+          if (!module || getBuiltInModuleDefinitions().some((item) => item.id === module.id)) {
             state.saveStatus = "Invalid module";
             renderWorkspace();
             return;
@@ -5588,6 +6113,21 @@
           state.modulesMode = "list";
           state.openModuleSettings = module.id;
           persist("Module installed");
+          return;
+        }
+
+        if (action === "generate-new-module" || action === "generate-module-adjustment") {
+          event.preventDefault();
+          const project = state.projects.find((item) => item.id === form.dataset.projectId);
+          if (!project) return;
+          const formData = new FormData(form);
+          const prompt = String(formData.get("prompt") || "").trim();
+          const moduleId = action === "generate-new-module" ? "__new__" : String(form.dataset.moduleId || "");
+          const knownModules = typeof getModuleDefinitions === "function" ? getModuleDefinitions() : [];
+          const moduleDef = moduleId && moduleId !== "__new__"
+            ? ((typeof getBuiltInModuleDefinition === "function" ? getBuiltInModuleDefinition(moduleId) : null) || knownModules.find((item) => item.id === moduleId) || null)
+            : null;
+          await startModuleGeneration(project, moduleId, prompt, moduleDef);
           return;
         }
 
@@ -5642,9 +6182,35 @@
           const project = state.projects.find((item) => item.id === form.dataset.projectId);
           if (!project) return;
 
-          project.notes.push({ id: uid(), body, createdAt: now() });
+          const firstLine = body.split("\n").find(l => l.trim()) || "";
+          const title = String(formData.get("title") || "").trim() || firstLine.slice(0, 80);
+          const createdAt = now();
+          project.notes.push({ id: uid(), title, body, createdAt, updatedAt: createdAt });
           project.updatedAt = now();
           persist("Note added");
+          return;
+        }
+
+        if (action === "update-note") {
+          event.preventDefault();
+          const formData = new FormData(form);
+          const body = String(formData.get("body") || "").trim();
+          if (!body) return;
+
+          const project = state.projects.find((item) => item.id === form.dataset.projectId);
+          if (!project) return;
+
+          const note = project.notes.find((n) => n.id === form.dataset.noteId);
+          if (!note) return;
+
+          const firstLine = body.split("\n").find(l => l.trim()) || "";
+          note.title = String(formData.get("title") || "").trim() || firstLine.slice(0, 80);
+          note.body = body;
+          note.updatedAt = now();
+          project.updatedAt = now();
+          state.editingNoteId = null;
+          persist("Note updated");
+          return;
         }
       });
 
@@ -5723,7 +6289,14 @@
       });
 
       els.exportButton.addEventListener("click", () => {
-        exportData({ projects: state.projects, selectedId: state.selectedId, appSettings: state.appSettings, version: 1 }, "ourdashboard-export.json");
+        const runtime = getActiveModuleGenerationJob();
+        exportData({
+          projects: state.projects,
+          selectedId: state.selectedId,
+          appSettings: state.appSettings,
+          moduleGeneration: runtime ? normalizeModuleGenerationRuntime(runtime) : normalizeModuleGenerationRuntime({}),
+          version: 1
+        }, "ourdashboard-export.json");
       });
 
       els.importButton.addEventListener("click", () => {
@@ -5767,12 +6340,279 @@
 
       loadState();
       loadLayout();
+      initProjectsFirebaseAuth();
       setupResizeRail();
       render();
       window.requestAnimationFrame(() => {
         els.html.setAttribute("data-app-ready", "true");
       });
-    })();
+
+    const moduleGenerationFeatureState = {
+      pollerId: null
+    };
+
+    const clearModuleGenerationJob = (message = "Generated module job cleared.", persistMessage = "Generated module job cleared") => {
+      state.moduleGeneration = normalizeModuleGenerationRuntime({});
+      state.saveStatus = message;
+      persist(persistMessage);
+    };
+
+      const moduleGenerationRequest = async (payload, skipAuthMessage = true) => {
+        const apiUrl = moduleGenerationApiUrl();
+        if (!trustedProjectsApiUrl(apiUrl)) {
+          return { ok: false, message: "AI module API URL is not allowlisted for auth requests.", needsAuth: false };
+        }
+        const tokenResult = await ensureSignedInToken();
+        if (!tokenResult.ok) {
+          if (!skipAuthMessage) {
+            state.saveStatus = tokenResult.message;
+            render();
+          }
+          return {
+            ok: false,
+            message: tokenResult.message,
+            needsAuth: Boolean(tokenResult.needsAuth)
+          };
+        }
+        const callApi = async (token) => fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        try {
+          let response = await callApi(tokenResult.token);
+          if (response.status === 401 && projectsFirebaseAuth?.currentUser) {
+            const refreshed = await projectsFirebaseAuth.currentUser.getIdToken(true);
+            if (refreshed) {
+              response = await callApi(refreshed);
+            }
+          }
+          const json = await response.json().catch(() => ({}));
+          if (!response.ok) return { ok: false, message: json?.message || `Request failed: ${response.status}` };
+          if (!json || typeof json !== "object") return { ok: false, message: "Invalid response from AI module service." };
+          return json;
+        } catch (error) {
+          return { ok: false, message: error?.message || "Module generation request failed." };
+        }
+      };
+
+    const installGeneratedModuleForRuntime = (runtime, generatedSchema) => {
+      const normalized = normalizeCustomModule(generatedSchema);
+      if (!normalized || (typeof getBuiltInModuleDefinition === "function" && getBuiltInModuleDefinition(normalized.id))) return false;
+
+      state.appSettings = normalizeAppSettings(state.appSettings);
+      state.appSettings.customModules = (state.appSettings.customModules || []).filter((item) => item.id !== normalized.id);
+      state.appSettings.customModules.push(normalized);
+
+      state.projects = state.projects.map((project) => ({
+        ...project,
+        modules: normalizeModules(project.modules, project.integrations)
+      }));
+
+      const targetProject = state.projects.find((project) => project.id === runtime.projectId);
+      if (!targetProject) return false;
+      targetProject.modules = normalizeModules(targetProject.modules, targetProject.integrations);
+      if (!targetProject.modules[normalized.id]) return false;
+      targetProject.modules[normalized.id].enabled = true;
+      targetProject.updatedAt = now();
+
+      state.selectedId = targetProject.id;
+      state.workspace = "project";
+      state.projectTab = `module:${normalized.id}`;
+      state.modulesMode = "list";
+      state.modulesOpen = false;
+      state.openModuleSettings = normalized.id;
+      state.moduleGeneration = normalizeModuleGenerationRuntime({});
+      state.saveStatus = "Generated module applied.";
+      persist("Generated module applied");
+      return true;
+    };
+
+    const startModuleGeneration = async (project, moduleId, prompt, adjustFromModule) => {
+      const trimmedPrompt = String(prompt || "").trim();
+      if (!project || !moduleId) return;
+      if (!trimmedPrompt) {
+        state.saveStatus = "Enter a module prompt before generating.";
+        render();
+        return;
+      }
+
+      const active = getActiveModuleGenerationJob();
+      if (active && (active.status === "queued" || active.status === "running")) {
+        state.moduleGeneration = normalizeModuleGenerationRuntime({
+          ...active,
+          blockedMessage: "Another module generation job is already running.",
+          updatedAt: now()
+        });
+        state.saveStatus = "Another module generation job is already active.";
+        render();
+        return;
+      }
+
+      state.selectedId = project.id;
+      state.workspace = "project";
+      state.modulesOpen = false;
+      state.projectTab = moduleId === "__new__" ? "module-builder" : `module:${moduleId}`;
+
+      state.moduleGeneration = normalizeModuleGenerationRuntime({
+        projectId: project.id,
+        requestedModuleId: moduleId,
+        outputModuleId: moduleId === "__new__" ? "" : moduleId,
+        prompt: trimmedPrompt,
+        status: "queued",
+        message: "Starting generation...",
+        jobId: "",
+        draftResult: null,
+        startedAt: now(),
+        updatedAt: now(),
+        blockedMessage: ""
+      });
+      persist("Module generation started");
+
+      const payload = {
+        mode: "module-generate-start",
+        moduleId,
+        prompt: trimmedPrompt
+      };
+      if (adjustFromModule) payload.adjustFromModule = sanitizeGeneratedModule(adjustFromModule) || adjustFromModule;
+
+      const response = await moduleGenerationRequest(payload, false);
+      if (!response.ok) {
+        state.moduleGeneration = normalizeModuleGenerationRuntime({
+          ...state.moduleGeneration,
+          status: "failed",
+          message: response.message || "Failed to start generation.",
+          updatedAt: now()
+        });
+        persist("Module generation failed");
+        return;
+      }
+
+      state.moduleGeneration = normalizeModuleGenerationRuntime({
+        ...state.moduleGeneration,
+        jobId: response.jobId || "",
+        status: response.status || "queued",
+        message: response.message || "Queued",
+        updatedAt: now()
+      });
+      persist("Module generation started");
+    };
+
+      const pollModuleGenerationJob = async (jobId) => {
+        const runtime = getActiveModuleGenerationJob();
+        if (!runtime || !jobId || runtime.jobId !== jobId) return;
+        const response = await moduleGenerationRequest({
+          mode: "module-generate-status",
+          jobId
+        }, false);
+        if (!response.ok) {
+          if (response.needsAuth) {
+            state.moduleGeneration = normalizeModuleGenerationRuntime({
+              ...runtime,
+              message: response.message || runtime.message || "Waiting for signed-in session to continue.",
+              blockedMessage: ""
+            });
+            persist("Module generation waiting");
+            return;
+          }
+          state.moduleGeneration = normalizeModuleGenerationRuntime({
+            ...runtime,
+            status: "failed",
+            message: response.message || runtime.message || "Failed to check module generation.",
+            updatedAt: now()
+        });
+        persist("Module generation failed");
+        return;
+      }
+
+      const nextStatus = response.status || "failed";
+      let nextRuntime = normalizeModuleGenerationRuntime({
+        ...runtime,
+        status: nextStatus,
+        message: response.message || runtime.message || "",
+        jobId: response.jobId || runtime.jobId || "",
+        updatedAt: now(),
+        blockedMessage: ""
+      });
+
+      if (nextStatus === "done") {
+        const clean = response.result ? sanitizeGeneratedModule(response.result) : null;
+        if (!clean) {
+          nextRuntime = normalizeModuleGenerationRuntime({
+            ...nextRuntime,
+            status: "failed",
+            message: "Invalid schema result from service.",
+            draftResult: response.result && typeof response.result === "object" ? response.result : null,
+            updatedAt: now()
+          });
+          state.moduleGeneration = nextRuntime;
+          persist("Module generation failed");
+          return;
+        }
+        nextRuntime = normalizeModuleGenerationRuntime({
+          ...nextRuntime,
+          outputModuleId: clean.id,
+          draftResult: clean,
+          message: response.message || "Generated module ready."
+        });
+        state.moduleGeneration = nextRuntime;
+        if (installGeneratedModuleForRuntime(nextRuntime, clean)) return;
+        nextRuntime = normalizeModuleGenerationRuntime({
+          ...nextRuntime,
+          status: "failed",
+          message: "Generated module could not be installed.",
+          updatedAt: now()
+        });
+      } else if (response.result && typeof response.result === "object") {
+        nextRuntime = normalizeModuleGenerationRuntime({
+          ...nextRuntime,
+          draftResult: response.result
+        });
+      }
+
+      state.moduleGeneration = nextRuntime;
+      persist("Module generation updated");
+    };
+
+    const pollModuleGenerationJobs = async () => {
+      if (!isModuleGenerationRunning()) return;
+      const runtime = getActiveModuleGenerationJob();
+      if (!runtime?.jobId) return;
+      await pollModuleGenerationJob(runtime.jobId);
+    };
+
+    const ensureModuleGenerationPolling = () => {
+      if (moduleGenerationFeatureState.pollerId) return;
+      moduleGenerationFeatureState.pollerId = window.setInterval(() => {
+        pollModuleGenerationJobs();
+      }, 2500);
+    };
+
+    resolveModuleGenerationState();
+    ensureModuleGenerationPolling();
+    if (isModuleGenerationRunning()) {
+      window.setTimeout(() => {
+        pollModuleGenerationJobs();
+      }, 250);
+    }
+
+  };
+    const moduleRegistryReady = window.moduleRegistryReady;
+    if (moduleRegistryReady && typeof moduleRegistryReady.then === "function") {
+      moduleRegistryReady
+        .then(() => {
+          startOurDashboard();
+        })
+        .catch((error) => {
+          console.error("Module registry failed to load before startup.", error);
+          startOurDashboard();
+        });
+    } else {
+      startOurDashboard();
+    }
   </script>
 </body>
 </html>
