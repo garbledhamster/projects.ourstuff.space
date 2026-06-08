@@ -6357,47 +6357,67 @@
       persist(persistMessage);
     };
 
-      const moduleGenerationRequest = async (payload, skipAuthMessage = true) => {
-        const apiUrl = moduleGenerationApiUrl();
-        if (!trustedProjectsApiUrl(apiUrl)) {
-          return { ok: false, message: "AI module API URL is not allowlisted for auth requests.", needsAuth: false };
+    const moduleGenerationRequest = async (payload, skipAuthMessage = true) => {
+      const apiUrl = moduleGenerationApiUrl();
+      if (!trustedProjectsApiUrl(apiUrl)) {
+        return { ok: false, message: "AI module API URL is not allowlisted for auth requests.", needsAuth: false };
+      }
+      const tokenResult = await ensureSignedInToken();
+      if (!tokenResult.ok) {
+        if (!skipAuthMessage) {
+          state.saveStatus = tokenResult.message;
+          render();
         }
-        const tokenResult = await ensureSignedInToken();
-        if (!tokenResult.ok) {
-          if (!skipAuthMessage) {
-            state.saveStatus = tokenResult.message;
-            render();
+        return {
+          ok: false,
+          message: tokenResult.message,
+          needsAuth: Boolean(tokenResult.needsAuth)
+        };
+      }
+      const callApi = async (token) => fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      try {
+        let response = await callApi(tokenResult.token);
+        if (response.status === 401 && projectsFirebaseAuth?.currentUser) {
+          const refreshed = await projectsFirebaseAuth.currentUser.getIdToken(true);
+          if (refreshed) {
+            response = await callApi(refreshed);
           }
-          return {
-            ok: false,
-            message: tokenResult.message,
-            needsAuth: Boolean(tokenResult.needsAuth)
-          };
         }
-        const callApi = async (token) => fetch(apiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-        try {
-          let response = await callApi(tokenResult.token);
-          if (response.status === 401 && projectsFirebaseAuth?.currentUser) {
-            const refreshed = await projectsFirebaseAuth.currentUser.getIdToken(true);
-            if (refreshed) {
-              response = await callApi(refreshed);
-            }
-          }
-          const json = await response.json().catch(() => ({}));
-          if (!response.ok) return { ok: false, message: json?.message || `Request failed: ${response.status}` };
-          if (!json || typeof json !== "object") return { ok: false, message: "Invalid response from AI module service." };
-          return json;
-        } catch (error) {
-          return { ok: false, message: error?.message || "Module generation request failed." };
-        }
+        const json = await response.json().catch(() => ({}));
+        if (!response.ok) return { ok: false, message: json?.message || `Request failed: ${response.status}` };
+        if (!json || typeof json !== "object") return { ok: false, message: "Invalid response from AI module service." };
+        return json;
+      } catch (error) {
+        return { ok: false, message: error?.message || "Module generation request failed." };
+      }
+    };
+
+    const normalizeModuleGenerationServiceResponse = (response = {}) => {
+      const envelopeResult = response && typeof response.result === "object" && response.result !== null
+        ? response.result
+        : {};
+      const generatedModule = envelopeResult.result && typeof envelopeResult.result === "object"
+        ? envelopeResult.result
+        : envelopeResult.id
+          ? envelopeResult
+          : response.result && typeof response.result === "object"
+            ? response.result
+            : null;
+      return {
+        ok: response.ok === true,
+        status: String(response.status || envelopeResult.status || "").trim(),
+        message: String(response.message || envelopeResult.message || "").trim(),
+        jobId: String(response.jobId || envelopeResult.jobId || "").trim(),
+        generatedModule
       };
+    };
 
     const installGeneratedModuleForRuntime = (runtime, generatedSchema) => {
       const normalized = normalizeCustomModule(generatedSchema);
@@ -6491,61 +6511,63 @@
         return;
       }
 
+      const moduleResponse = normalizeModuleGenerationServiceResponse(response);
       state.moduleGeneration = normalizeModuleGenerationRuntime({
         ...state.moduleGeneration,
-        jobId: response.jobId || "",
-        status: response.status || "queued",
-        message: response.message || "Queued",
+        jobId: moduleResponse.jobId,
+        status: moduleResponse.status || "queued",
+        message: moduleResponse.message || "Queued",
         updatedAt: now()
       });
       persist("Module generation started");
     };
 
-      const pollModuleGenerationJob = async (jobId) => {
-        const runtime = getActiveModuleGenerationJob();
-        if (!runtime || !jobId || runtime.jobId !== jobId) return;
-        const response = await moduleGenerationRequest({
-          mode: "module-generate-status",
-          jobId
-        }, false);
-        if (!response.ok) {
-          if (response.needsAuth) {
-            state.moduleGeneration = normalizeModuleGenerationRuntime({
-              ...runtime,
-              message: response.message || runtime.message || "Waiting for signed-in session to continue.",
-              blockedMessage: ""
-            });
-            persist("Module generation waiting");
-            return;
-          }
+    const pollModuleGenerationJob = async (jobId) => {
+      const runtime = getActiveModuleGenerationJob();
+      if (!runtime || !jobId || runtime.jobId !== jobId) return;
+      const response = await moduleGenerationRequest({
+        mode: "module-generate-status",
+        jobId
+      }, false);
+      if (!response.ok) {
+        if (response.needsAuth) {
           state.moduleGeneration = normalizeModuleGenerationRuntime({
             ...runtime,
-            status: "failed",
-            message: response.message || runtime.message || "Failed to check module generation.",
-            updatedAt: now()
+            message: response.message || runtime.message || "Waiting for signed-in session to continue.",
+            blockedMessage: ""
+          });
+          persist("Module generation waiting");
+          return;
+        }
+        state.moduleGeneration = normalizeModuleGenerationRuntime({
+          ...runtime,
+          status: "failed",
+          message: response.message || runtime.message || "Failed to check module generation.",
+          updatedAt: now()
         });
         persist("Module generation failed");
         return;
       }
 
-      const nextStatus = response.status || "failed";
+      const moduleResponse = normalizeModuleGenerationServiceResponse(response);
+      const nextStatus = moduleResponse.status || "failed";
       let nextRuntime = normalizeModuleGenerationRuntime({
         ...runtime,
         status: nextStatus,
-        message: response.message || runtime.message || "",
-        jobId: response.jobId || runtime.jobId || "",
+        message: moduleResponse.message || runtime.message || "",
+        jobId: moduleResponse.jobId || runtime.jobId || "",
         updatedAt: now(),
         blockedMessage: ""
       });
 
       if (nextStatus === "done") {
-        const clean = response.result ? sanitizeGeneratedModule(response.result) : null;
+        const clean = moduleResponse.generatedModule ? sanitizeGeneratedModule(moduleResponse.generatedModule) : null;
         if (!clean) {
           nextRuntime = normalizeModuleGenerationRuntime({
             ...nextRuntime,
             status: "failed",
             message: "Invalid schema result from service.",
-            draftResult: response.result && typeof response.result === "object" ? response.result : null,
+            draftResult: moduleResponse.generatedModule,
             updatedAt: now()
           });
           state.moduleGeneration = nextRuntime;
@@ -6556,7 +6578,7 @@
           ...nextRuntime,
           outputModuleId: clean.id,
           draftResult: clean,
-          message: response.message || "Generated module ready."
+          message: moduleResponse.message || "Generated module ready."
         });
         state.moduleGeneration = nextRuntime;
         if (installGeneratedModuleForRuntime(nextRuntime, clean)) return;
@@ -6566,10 +6588,10 @@
           message: "Generated module could not be installed.",
           updatedAt: now()
         });
-      } else if (response.result && typeof response.result === "object") {
+      } else if (moduleResponse.generatedModule) {
         nextRuntime = normalizeModuleGenerationRuntime({
           ...nextRuntime,
-          draftResult: response.result
+          draftResult: moduleResponse.generatedModule
         });
       }
 
